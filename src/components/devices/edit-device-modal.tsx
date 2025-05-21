@@ -35,7 +35,7 @@ import type { Device, Room } from '@/types';
 
 const deviceSchema = z.object({
   name: z.string().min(2, { message: 'Device name must be at least 2 characters.' }),
-  room: z.string().optional(), // Made room optional
+  room: z.string().optional(),
   type: z.enum(['light', 'thermostat', 'blinds', 'sensor', 'camera', 'speaker', 'other'], {
     required_error: 'You need to select a device type.',
   }),
@@ -56,7 +56,7 @@ export function EditDeviceModal({ isOpen, onOpenChange, deviceToEdit, onDeviceUp
 
   const form = useForm<EditDeviceFormValues>({
     resolver: zodResolver(deviceSchema),
-    // Default values will be set by useEffect
+    // Default values will be set by useEffect below
   });
 
   useEffect(() => {
@@ -77,7 +77,7 @@ export function EditDeviceModal({ isOpen, onOpenChange, deviceToEdit, onDeviceUp
       if (deviceToEdit) {
         form.reset({
           name: deviceToEdit.name,
-          room: deviceToEdit.room || '', // Ensure empty string if undefined for Select
+          room: deviceToEdit.room || undefined, // Use undefined for optional select
           type: deviceToEdit.type,
         });
       }
@@ -88,13 +88,16 @@ export function EditDeviceModal({ isOpen, onOpenChange, deviceToEdit, onDeviceUp
     onDeviceUpdate({
       id: deviceToEdit.id,
       name: data.name,
-      room: data.room || undefined, // Ensure undefined if empty string
+      room: data.room || undefined,
       type: data.type,
     });
     onOpenChange(false);
   }
 
   const handleModalOpenChange = (open: boolean) => {
+     if (!open) {
+        form.reset({ name: deviceToEdit.name, room: deviceToEdit.room || undefined, type: deviceToEdit.type }); // Reset form on close
+    }
     onOpenChange(open);
   };
 
@@ -128,7 +131,7 @@ export function EditDeviceModal({ isOpen, onOpenChange, deviceToEdit, onDeviceUp
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Room (Optional)</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                  <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a room" />
@@ -142,7 +145,9 @@ export function EditDeviceModal({ isOpen, onOpenChange, deviceToEdit, onDeviceUp
                           </SelectItem>
                         ))
                       ) : (
-                         <SelectItem value={deviceToEdit?.room || ""} disabled>{deviceToEdit?.room || "No rooms available"}</SelectItem>
+                         <div className="p-2 text-sm text-center text-muted-foreground">
+                           No rooms available. Add one on the Rooms page.
+                         </div>
                       )}
                     </SelectContent>
                   </Select>

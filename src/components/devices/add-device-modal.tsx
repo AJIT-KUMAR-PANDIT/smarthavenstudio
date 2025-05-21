@@ -35,7 +35,7 @@ import type { Device, Room } from '@/types';
 
 const deviceSchema = z.object({
   name: z.string().min(2, { message: 'Device name must be at least 2 characters.' }),
-  room: z.string().optional(), // Made room optional
+  room: z.string().optional(),
   type: z.enum(['light', 'thermostat', 'blinds', 'sensor', 'camera', 'speaker', 'other'], {
     required_error: 'You need to select a device type.',
   }),
@@ -57,7 +57,7 @@ export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd }: AddDeviceM
     resolver: zodResolver(deviceSchema),
     defaultValues: {
       name: '',
-      room: '', // Or undefined, zod optional will handle it
+      room: undefined, // Explicitly undefined for optional select
       type: undefined,
     },
   });
@@ -82,7 +82,7 @@ export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd }: AddDeviceM
   function onSubmit(data: AddDeviceFormValues) {
     onDeviceAdd({
         name: data.name,
-        room: data.room || undefined, // Ensure undefined if empty string
+        room: data.room || undefined,
         type: data.type,
     });
     form.reset();
@@ -92,7 +92,7 @@ export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd }: AddDeviceM
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
       if (!open) {
-        form.reset();
+        form.reset(); // Reset form when dialog is closed
       }
       onOpenChange(open);
     }}>
@@ -124,7 +124,7 @@ export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd }: AddDeviceM
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Room (Optional)</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                  <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a room" />
@@ -138,7 +138,9 @@ export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd }: AddDeviceM
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="" disabled>No rooms created yet</SelectItem>
+                        <div className="p-2 text-sm text-center text-muted-foreground">
+                          No rooms created yet. Add one on the Rooms page.
+                        </div>
                       )}
                     </SelectContent>
                   </Select>
