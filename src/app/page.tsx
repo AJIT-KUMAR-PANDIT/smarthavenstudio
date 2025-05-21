@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { Loader2 } from 'lucide-react';
@@ -8,7 +8,7 @@ import { Loader2 } from 'lucide-react';
 export default function HomePage() {
   const { isAuthenticated, isPinSet } = useAuth();
   const router = useRouter();
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Delay check to allow AuthProvider to initialize
