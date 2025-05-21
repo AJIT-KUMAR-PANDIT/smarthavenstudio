@@ -49,7 +49,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
     <SidebarProvider defaultOpen={true}>
       {!isMobile && <AppSidebar />} 
       {!isMobile && <SidebarRail />} 
-      <div className={cn("flex flex-col flex-1 min-h-screen overflow-x-hidden", isMobile && "pb-16")}> {/* Added overflow-x-hidden */}
+      <div className={cn(
+        "flex flex-col flex-1 min-h-screen overflow-x-hidden overflow-y-auto", 
+        isMobile && "pb-16"
+      )}>
         <AppHeader />
         <SidebarInset>
           <main className="flex-1 p-4 md:p-6 lg:p-8">
