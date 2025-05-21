@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react'; // Added useEffect
+import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
@@ -87,12 +87,12 @@ export default function AutomationsPage() {
   }, [automations]);
 
 
-  const handleAutomationAdd = (newAutomationData: Pick<Automation, 'name' | 'description'>) => {
+  const handleAutomationAdd = (newAutomationData: Pick<Automation, 'name' | 'description' | 'trigger'>) => {
     const newAutomation: Automation = {
       ...newAutomationData,
       id: String(automations.length + 1 + Date.now()),
-      isEnabled: true, 
-      trigger: { type: 'time', details: { time: '12:00' } }, 
+      isEnabled: true,
+      // trigger is now part of newAutomationData
       actions: [], 
     };
     setAutomations(prevAutomations => [...prevAutomations, newAutomation]);
@@ -118,7 +118,7 @@ export default function AutomationsPage() {
     }
   };
 
-  const handleAutomationUpdate = (updatedData: Pick<Automation, 'id' | 'name' | 'description'>) => {
+  const handleAutomationUpdate = (updatedData: Pick<Automation, 'id' | 'name' | 'description' | 'trigger'>) => {
     setAutomations(prev => 
       prev.map(auto => 
         auto.id === updatedData.id ? { ...auto, ...updatedData } : auto
