@@ -1,3 +1,4 @@
+
 import type { Room, Device } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,13 +6,14 @@ import { DoorOpen, Lightbulb, Thermometer, Users, Edit3 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { getIconComponentByName } from "./add-room-form"; // Import helper
 
 interface RoomCardProps {
   room: Room;
 }
 
 export function RoomCard({ room }: RoomCardProps) {
-  const Icon = room.icon || DoorOpen;
+  const Icon = room.icon || getIconComponentByName(room.iconName) || DoorOpen; // Use helper or default
   const onlineDevices = room.devices.filter(d => d.isOnline).length;
   const activeLights = room.devices.filter(d => d.type === 'light' && d.status === 'on').length;
   // A simple heuristic for room activity based on device status
@@ -25,8 +27,8 @@ export function RoomCard({ room }: RoomCardProps) {
             <Image 
                 src={room.backgroundImage} 
                 alt={room.name} 
-                layout="fill" 
-                objectFit="cover" 
+                fill={true} // Use fill instead of layout
+                style={{objectFit: "cover"}} // Use style for objectFit
                 className="transition-transform duration-300 group-hover:scale-105"
                 data-ai-hint="room interior" 
             />
@@ -39,7 +41,8 @@ export function RoomCard({ room }: RoomCardProps) {
           <CardTitle className={cn("text-xl", room.backgroundImage && "text-white")}>{room.name}</CardTitle>
         </div>
          <Button variant={room.backgroundImage ? "ghost" : "outline"} size="icon" className={cn("h-8 w-8", room.backgroundImage && "text-white hover:bg-white/20")} asChild>
-            <Link href={`/rooms/${room.id}/edit`}>
+            {/* This link will eventually trigger an EditRoomModal */}
+            <Link href={`#edit-room-${room.id}`}>
                 <Edit3 className="h-4 w-4" />
             </Link>
         </Button>
@@ -62,7 +65,8 @@ export function RoomCard({ room }: RoomCardProps) {
       </CardContent>
       <CardFooter className="border-t pt-4">
         <Button variant="default" size="sm" className="w-full" asChild>
-            <Link href={`/rooms/${room.id}`}>
+             {/* This link will eventually trigger a ViewRoomModal or navigate to a room detail page */}
+            <Link href={`#view-room-${room.id}`}>
                 View Room
             </Link>
         </Button>

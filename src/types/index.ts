@@ -1,3 +1,6 @@
+
+import type { LucideIcon } from 'lucide-react';
+
 export interface Device {
   id: string;
   name: string;
@@ -17,14 +20,15 @@ export interface Room {
   name: string;
   devices: Device[];
   backgroundImage?: string; // URL for room image
-  icon?: React.ElementType;
+  icon?: LucideIcon; // The actual Lucide icon component
+  iconName?: string; // Name of the icon for storage/selection
 }
 
 export interface Scene {
   id: string;
   name: string;
   description: string;
-  icon?: React.ElementType;
+  icon?: LucideIcon;
   isActive: boolean;
   actions: {
     deviceId: string;
@@ -63,7 +67,7 @@ export interface NotificationMessage {
   message: string;
   read: boolean;
   type: 'alert' | 'info' | 'update' | 'reminder';
-  icon?: React.ElementType;
+  icon?: LucideIcon;
 }
 
 export interface EnergyDataPoint {
