@@ -2,8 +2,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-// Metadata export removed as this is a client component
-// import type { Metadata } from 'next'; 
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Wand2, Film, Sun, Coffee, Palette, Zap, Moon } from 'lucide-react';
@@ -11,7 +9,8 @@ import { SceneList } from '@/components/scenes/scene-list';
 import { AiSceneSuggester } from '@/components/scenes/ai-scene-suggester';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddSceneModal } from '@/components/scenes/add-scene-modal';
-import { EditSceneModal } from '@/components/scenes/edit-scene-modal'; // Added
+import { EditSceneModal } from '@/components/scenes/edit-scene-modal';
+import { DeleteSceneConfirmationModal } from '@/components/scenes/delete-scene-confirmation-modal'; // Added
 import type { Scene } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 
@@ -26,8 +25,10 @@ const initialMockScenes: Scene[] = [
 
 export default function ScenesPage() {
   const [isAddSceneModalOpen, setIsAddSceneModalOpen] = useState(false);
-  const [isEditSceneModalOpen, setIsEditSceneModalOpen] = useState(false); // Added
-  const [editingScene, setEditingScene] = useState<Scene | null>(null); // Added
+  const [isEditSceneModalOpen, setIsEditSceneModalOpen] = useState(false);
+  const [isDeleteSceneModalOpen, setIsDeleteSceneModalOpen] = useState(false); // Added
+  const [editingScene, setEditingScene] = useState<Scene | null>(null);
+  const [deletingSceneId, setDeletingSceneId] = useState<string | null>(null); // Added
   const [scenes, setScenes] = useState<Scene[]>(initialMockScenes);
   const { toast } = useToast();
 
@@ -46,7 +47,7 @@ export default function ScenesPage() {
     });
   };
 
-  const handleOpenEditModal = (sceneId: string) => { // Modified to take ID
+  const handleOpenEditModal = (sceneId: string) => {
     const sceneToEdit = scenes.find(s => s.id === sceneId);
     if (sceneToEdit) {
       setEditingScene(sceneToEdit);
@@ -56,7 +57,7 @@ export default function ScenesPage() {
     }
   };
 
-  const handleSceneUpdate = (updatedSceneData: Pick<Scene, 'id' | 'name' | 'description'>) => { // Added
+  const handleSceneUpdate = (updatedSceneData: Pick<Scene, 'id' | 'name' | 'description'>) => {
     setScenes(prevScenes =>
       prevScenes.map(scene =>
         scene.id === updatedSceneData.id ? { ...scene, ...updatedSceneData } : scene
@@ -67,6 +68,25 @@ export default function ScenesPage() {
       title: 'Scene Updated',
       description: `${updatedSceneData.name} has been successfully updated.`,
     });
+  };
+
+  const handleOpenDeleteModal = (sceneId: string) => { // Added
+    setDeletingSceneId(sceneId);
+    setIsDeleteSceneModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => { // Added
+    if (deletingSceneId) {
+      const sceneToDelete = scenes.find(s => s.id === deletingSceneId);
+      setScenes(prevScenes => prevScenes.filter(s => s.id !== deletingSceneId));
+      toast({
+        title: 'Scene Deleted',
+        description: `${sceneToDelete?.name || 'Scene'} has been removed.`,
+        variant: 'destructive',
+      });
+      setDeletingSceneId(null);
+      setIsDeleteSceneModalOpen(false);
+    }
   };
 
   const handleActivate = (id: string) => {
@@ -88,13 +108,6 @@ export default function ScenesPage() {
     const scene = scenes.find(s => s.id === id);
     toast({ title: `${scene?.name || 'Scene'} Deactivated` });
   }
-
-  const handleDelete = (id: string) => {
-    const scene = scenes.find(s => s.id === id);
-    // Add confirmation dialog here in a real app
-    setScenes(prevScenes => prevScenes.filter(s => s.id !== id));
-    toast({ title: `${scene?.name} Deleted`, variant: "destructive" });
-  };
 
   return (
     <div className="space-y-6">
@@ -120,8 +133,8 @@ export default function ScenesPage() {
             scenes={scenes}
             onActivate={handleActivate}
             onDeactivate={handleDeactivate}
-            onEdit={handleOpenEditModal} // Changed from handleDelete to handleOpenEditModal
-            onDelete={handleDelete}
+            onEdit={handleOpenEditModal}
+            onDelete={handleOpenDeleteModal} // Changed to open delete modal
           />
         </TabsContent>
         <TabsContent value="ai-suggester" className="mt-6">
@@ -134,12 +147,20 @@ export default function ScenesPage() {
         onOpenChange={setIsAddSceneModalOpen}
         onSceneAdd={handleSceneAdd}
       />
-      {editingScene && ( // Added
+      {editingScene && (
         <EditSceneModal
           isOpen={isEditSceneModalOpen}
           onOpenChange={setIsEditSceneModalOpen}
           sceneToEdit={editingScene}
           onSceneUpdate={handleSceneUpdate}
+        />
+      )}
+      {deletingSceneId && ( // Added
+        <DeleteSceneConfirmationModal
+          isOpen={isDeleteSceneModalOpen}
+          onOpenChange={setIsDeleteSceneModalOpen}
+          sceneName={scenes.find(s => s.id === deletingSceneId)?.name || 'this scene'}
+          onConfirmDelete={handleConfirmDelete}
         />
       )}
     </div>
