@@ -1,7 +1,8 @@
+
 "use client"
 
 import { TrendingUp } from "lucide-react"
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts"
 
 import {
   Card,
@@ -47,29 +48,32 @@ export function EnergyUsageChart() {
         <CardDescription>Monthly energy consumption for the current year.</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[300px] w-full">
-          <BarChart accessibilityLayer data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
-            <XAxis
-              dataKey="time"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-              tickFormatter={(value) => value.slice(0, 3)}
-            />
-             <YAxis 
-              tickLine={false}
-              axisLine={false}
-              tickMargin={10}
-            />
-            <Tooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
-            />
-            <Legend />
-            <Bar dataKey="consumption" fill="var(--color-consumption)" radius={4} />
-          </BarChart>
-        </ChartContainer>
+        <div className="overflow-x-auto">
+          <ChartContainer config={chartConfig} className="h-[300px] w-full min-w-[600px]">
+            {/* ResponsiveContainer will adapt to ChartContainer's size */}
+            <BarChart accessibilityLayer data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+              <XAxis
+                dataKey="time"
+                tickLine={false}
+                tickMargin={10}
+                axisLine={false}
+                tickFormatter={(value) => value.slice(0, 3)}
+              />
+              <YAxis 
+                tickLine={false}
+                axisLine={false}
+                tickMargin={10}
+              />
+              <Tooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel />}
+              />
+              <Legend />
+              <Bar dataKey="consumption" fill="var(--color-consumption)" radius={4} />
+            </BarChart>
+          </ChartContainer>
+        </div>
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
         <div className="flex gap-2 font-medium leading-none">
