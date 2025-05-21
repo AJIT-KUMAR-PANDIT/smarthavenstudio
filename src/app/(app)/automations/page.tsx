@@ -11,7 +11,8 @@ import { AutomationList } from '@/components/automations/automation-list';
 import { useState } from 'react';
 import type { Automation } from '@/types';
 import { AddAutomationModal } from '@/components/automations/add-automation-modal';
-import { EditAutomationModal } from '@/components/automations/edit-automation-modal'; // Added
+import { EditAutomationModal } from '@/components/automations/edit-automation-modal';
+import { DeleteAutomationConfirmationModal } from '@/components/automations/delete-automation-confirmation-modal'; // Added
 import { useToast } from '@/hooks/use-toast';
 
 // Metadata should be handled by a parent server component if this page becomes client-only.
@@ -62,8 +63,10 @@ const initialMockAutomations: Automation[] = [
 export default function AutomationsPage() {
   const [automations, setAutomations] = useState<Automation[]>(initialMockAutomations);
   const [isAddAutomationModalOpen, setIsAddAutomationModalOpen] = useState(false);
-  const [isEditAutomationModalOpen, setIsEditAutomationModalOpen] = useState(false); // Added
-  const [editingAutomation, setEditingAutomation] = useState<Automation | null>(null); // Added
+  const [isEditAutomationModalOpen, setIsEditAutomationModalOpen] = useState(false);
+  const [editingAutomation, setEditingAutomation] = useState<Automation | null>(null);
+  const [isDeleteAutomationModalOpen, setIsDeleteAutomationModalOpen] = useState(false); // Added
+  const [deletingAutomationId, setDeletingAutomationId] = useState<string | null>(null); // Added
   const { toast } = useToast();
 
   const handleAutomationAdd = (newAutomationData: Pick<Automation, 'name' | 'description'>) => {
@@ -87,7 +90,7 @@ export default function AutomationsPage() {
     toast({ title: `${automation?.name || 'Automation'} ${enabled ? 'Enabled' : 'Disabled'}` });
   };
 
-  const handleOpenEditModal = (id: string) => { // Updated
+  const handleOpenEditModal = (id: string) => {
     const automationToEdit = automations.find(auto => auto.id === id);
     if (automationToEdit) {
       setEditingAutomation(automationToEdit);
@@ -97,7 +100,7 @@ export default function AutomationsPage() {
     }
   };
 
-  const handleAutomationUpdate = (updatedData: Pick<Automation, 'id' | 'name' | 'description'>) => { // Added
+  const handleAutomationUpdate = (updatedData: Pick<Automation, 'id' | 'name' | 'description'>) => {
     setAutomations(prev => 
       prev.map(auto => 
         auto.id === updatedData.id ? { ...auto, ...updatedData } : auto
@@ -110,9 +113,23 @@ export default function AutomationsPage() {
     });
   };
 
-  const handleDeleteAutomation = (id: string) => {
-    toast({ title: `Delete action for Automation ID: ${id}`, description: "Confirmation modal for deleting will be implemented."});
-    // Logic to open delete confirmation modal will go here
+  const handleOpenDeleteAutomationModal = (automationId: string) => { // Renamed and updated
+    setDeletingAutomationId(automationId);
+    setIsDeleteAutomationModalOpen(true);
+  };
+
+  const handleConfirmDeleteAutomation = () => { // Added
+    if (deletingAutomationId) {
+      const automationToDelete = automations.find(auto => auto.id === deletingAutomationId);
+      setAutomations(prev => prev.filter(auto => auto.id !== deletingAutomationId));
+      toast({
+        title: "Automation Deleted",
+        description: `${automationToDelete?.name || 'Automation'} has been successfully deleted.`,
+        variant: "destructive"
+      });
+      setDeletingAutomationId(null);
+      setIsDeleteAutomationModalOpen(false);
+    }
   };
 
 
@@ -131,19 +148,27 @@ export default function AutomationsPage() {
         automations={automations}
         onToggleEnable={handleToggleEnable}
         onEdit={handleOpenEditModal} 
-        onDelete={handleDeleteAutomation} 
+        onDelete={handleOpenDeleteAutomationModal} // Updated to open delete modal
       />
       <AddAutomationModal
         isOpen={isAddAutomationModalOpen}
         onOpenChange={setIsAddAutomationModalOpen}
         onAutomationAdd={handleAutomationAdd}
       />
-      {editingAutomation && ( // Added
+      {editingAutomation && (
         <EditAutomationModal
           isOpen={isEditAutomationModalOpen}
           onOpenChange={setIsEditAutomationModalOpen}
           automationToEdit={editingAutomation}
           onAutomationUpdate={handleAutomationUpdate}
+        />
+      )}
+      {deletingAutomationId && ( // Added
+        <DeleteAutomationConfirmationModal
+          isOpen={isDeleteAutomationModalOpen}
+          onOpenChange={setIsDeleteAutomationModalOpen}
+          automationName={automations.find(auto => auto.id === deletingAutomationId)?.name || 'this automation'}
+          onConfirmDelete={handleConfirmDeleteAutomation}
         />
       )}
     </div>
