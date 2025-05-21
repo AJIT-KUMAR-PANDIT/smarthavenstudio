@@ -28,7 +28,7 @@ export function EditSceneModal({ isOpen, onOpenChange, sceneToEdit, onSceneUpdat
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl"> {/* Increased width */}
+      <DialogContent className="sm:max-w-xl overflow-y-auto max-h-[85vh]"> {/* Increased width and added scroll */}
         <DialogHeader>
           <DialogTitle>Edit Scene: {sceneToEdit.name}</DialogTitle>
           <DialogDescription>
