@@ -9,9 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface DeviceListProps {
   devices: Device[];
+  onEditDevice: (device: Device) => void; // Added
 }
 
-export function DeviceList({ devices }: DeviceListProps) {
+export function DeviceList({ devices, onEditDevice }: DeviceListProps) { // Updated props
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRoom, setFilterRoom] = useState("all");
   const [filterType, setFilterType] = useState("all");
@@ -21,7 +22,7 @@ export function DeviceList({ devices }: DeviceListProps) {
     // In a real app, this would typically involve updating the state in the parent component (`DevicesPage`)
     // or calling an API to update the device status. For now, it's just a console log.
   };
-  
+
   const handleSettingChange = (id: string, setting: string, value: any) => {
     console.log(`Device ${id} setting ${setting} changed to ${value}`);
     // Similar to handleToggle, this would update state or call an API.
@@ -31,20 +32,20 @@ export function DeviceList({ devices }: DeviceListProps) {
     const nameMatch = device.name.toLowerCase().includes(searchTerm.toLowerCase());
     const roomMatch = device.room.toLowerCase().includes(searchTerm.toLowerCase());
     const searchMatch = nameMatch || roomMatch;
-    
+
     const roomFilterMatch = filterRoom === "all" || device.room === filterRoom;
     const typeFilterMatch = filterType === "all" || device.type === filterType;
-    
+
     return searchMatch && roomFilterMatch && typeFilterMatch;
   });
-  
+
   const rooms = ["all", ...Array.from(new Set(devices.map(d => d.room))).sort()];
   const types = ["all", ...Array.from(new Set(devices.map(d => d.type))).sort()];
 
   if (devices.length === 0) {
      return <p className="text-muted-foreground text-center py-10">No devices added yet. Click &quot;Add Device&quot; to get started.</p>;
   }
-  
+
   if (filteredDevices.length === 0 && devices.length > 0) {
     return <p className="text-muted-foreground text-center py-10">No devices match your current filters. Try adjusting your search or filters.</p>;
   }
@@ -52,7 +53,7 @@ export function DeviceList({ devices }: DeviceListProps) {
   return (
     <div className="space-y-6">
        <div className="flex flex-col sm:flex-row gap-4">
-        <Input 
+        <Input
           placeholder="Search devices by name or room..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -77,7 +78,13 @@ export function DeviceList({ devices }: DeviceListProps) {
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {filteredDevices.map((device) => (
-          <DeviceCard key={device.id} device={device} onToggle={handleToggle} onSettingChange={handleSettingChange} />
+          <DeviceCard
+            key={device.id}
+            device={device}
+            onToggle={handleToggle}
+            onSettingChange={handleSettingChange}
+            onEdit={() => onEditDevice(device)} // Added onEdit prop
+          />
         ))}
       </div>
     </div>

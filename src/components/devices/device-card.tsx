@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Device } from "@/types";
@@ -6,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
-import { Wifi, WifiOff, Settings, ChevronDown, ChevronUp, Lightbulb, Thermometer, PanelTopOpen, Video, Speaker } from "lucide-react";
+import { Wifi, WifiOff, Settings, ChevronDown, ChevronUp, Lightbulb, Thermometer, PanelTopOpen, Video, Speaker, Edit3 } from "lucide-react"; // Added Edit3
 import React, { useState } from "react";
 import {
   DropdownMenu,
@@ -20,7 +21,7 @@ const deviceTypeIcons = {
   light: Lightbulb,
   thermostat: Thermometer,
   blinds: PanelTopOpen,
-  sensor: Thermometer, // Example, could be specific sensor icons for different sensor types
+  sensor: Thermometer,
   camera: Video,
   speaker: Speaker,
 };
@@ -29,9 +30,10 @@ interface DeviceCardProps {
   device: Device;
   onToggle?: (id: string, status: boolean) => void;
   onSettingChange?: (id:string, setting: string, value: any) => void;
+  onEdit: (device: Device) => void; // Added onEdit prop
 }
 
-export function DeviceCard({ device, onToggle, onSettingChange }: DeviceCardProps) {
+export function DeviceCard({ device, onToggle, onSettingChange, onEdit }: DeviceCardProps) { // Updated props
   const [isOn, setIsOn] = useState(device.status === 'on' || (typeof device.value === 'number' && device.value > 0));
   const [brightness, setBrightness] = useState(device.type === 'light' && typeof device.settings?.brightness === 'number' ? device.settings.brightness : 50);
   const [temperature, setTemperature] = useState(device.type === 'thermostat' && typeof device.settings?.temperature === 'number' ? device.settings.temperature : 22);
@@ -67,7 +69,7 @@ export function DeviceCard({ device, onToggle, onSettingChange }: DeviceCardProp
         </div>
         <div className="flex items-center gap-2">
          {device.isOnline ? <Wifi className="h-4 w-4 text-green-500" /> : <WifiOff className="h-4 w-4 text-red-500" />}
-          {device.controllable && (device.type === 'light' || device.type === 'thermostat' || device.type === 'blinds') && ( // Added blinds here as they are usually controllable for expansion
+          {device.controllable && (device.type === 'light' || device.type === 'thermostat' || device.type === 'blinds') && (
              <Button variant="ghost" size="icon" onClick={() => setIsExpanded(!isExpanded)} className="h-7 w-7">
               {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
@@ -114,7 +116,6 @@ export function DeviceCard({ device, onToggle, onSettingChange }: DeviceCardProp
                 />
               </div>
             )}
-            {/* Add controls for other device types here if needed, e.g., blinds position */}
           </div>
         )}
       </CardContent>
@@ -127,7 +128,10 @@ export function DeviceCard({ device, onToggle, onSettingChange }: DeviceCardProp
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-56 p-2">
-                <div className="grid gap-2">
+                <div className="grid gap-1">
+                    <Button variant="outline" size="sm" className="w-full justify-start text-xs" onClick={() => onEdit(device)}> {/* Updated */}
+                        <Edit3 className="mr-2 h-3 w-3" /> Edit Device
+                    </Button>
                     <Button variant="outline" size="sm" className="w-full justify-start text-xs">View Details</Button>
                     <Button variant="outline" size="sm" className="w-full justify-start text-xs">Device Logs</Button>
                     <Button variant="destructive" size="sm" className="w-full justify-start text-xs">Remove Device</Button>
@@ -139,7 +143,6 @@ export function DeviceCard({ device, onToggle, onSettingChange }: DeviceCardProp
   );
 }
 
-// Need to define Label or import it if it's a shadcn component
 const Label = React.forwardRef<
   React.ElementRef<"label">,
   React.ComponentPropsWithoutRef<"label">

@@ -1,20 +1,14 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { DeviceList } from '@/components/devices/device-list';
 import { AddDeviceModal } from '@/components/devices/add-device-modal';
+import { EditDeviceModal } from '@/components/devices/edit-device-modal'; // Added
 import type { Device } from '@/types';
-
-// Client Components cannot export metadata.
-// If you need metadata for this page, it should be defined in a parent Server Component (e.g., layout.tsx)
-// export const metadata: Metadata = {
-//   title: 'Devices - SmartHaven',
-//   description: 'Manage your smart home devices.',
-// };
 
 const initialMockDevices: Device[] = [
   { id: "1", name: "Living Room Light", room: "Living Room", type: "light", status: "on", isOnline: true, lastSeen: "Online", controllable: true, settings: { brightness: 75 } },
@@ -29,19 +23,40 @@ const initialMockDevices: Device[] = [
 
 export default function DevicesPage() {
   const [isAddDeviceModalOpen, setIsAddDeviceModalOpen] = useState(false);
-  const [devices, setDevices] = useState<Device[]>(initialMockDevices);
+  const [isEditDeviceModalOpen, setIsEditDeviceModalOpen] = useState(false); // Added
+  const [editingDevice, setEditingDevice] = useState<Device | null>(null); // Added
+  const [devices, setDevices] = useState<Device[]>([]);
+
+  useEffect(() => {
+    // Simulate loading devices, e.g., from localStorage if we were persisting
+    setDevices(initialMockDevices);
+  }, []);
 
   const handleDeviceAdd = (newDeviceData: Omit<Device, 'id' | 'status' | 'isOnline' | 'lastSeen' | 'controllable' | 'settings' | 'icon' | 'value'> & {type: 'light' | 'thermostat' | 'blinds' | 'sensor' | 'camera' | 'speaker'}) => {
     const newDevice: Device = {
       ...newDeviceData,
       id: String(devices.length + 1 + Date.now()), // Simple unique ID
       status: newDeviceData.type === 'light' || newDeviceData.type === 'blinds' ? 'off' : 'inactive', // Default status
-      isOnline: true, 
+      isOnline: true,
       lastSeen: 'Just now',
-      controllable: true, 
-      // settings, icon, value can be added based on type if needed
+      controllable: ['light', 'thermostat', 'blinds', 'speaker'].includes(newDeviceData.type), // Default controllability
+      settings: newDeviceData.type === 'light' ? { brightness: 50 } : newDeviceData.type === 'thermostat' ? { temperature: 22 } : {},
     };
     setDevices(prevDevices => [...prevDevices, newDevice]);
+  };
+
+  const handleOpenEditModal = (device: Device) => { // Added
+    setEditingDevice(device);
+    setIsEditDeviceModalOpen(true);
+  };
+
+  const handleDeviceUpdate = (updatedDeviceData: Pick<Device, 'id' | 'name' | 'room' | 'type'>) => { // Added
+    setDevices(prevDevices =>
+      prevDevices.map(device =>
+        device.id === updatedDeviceData.id ? { ...device, ...updatedDeviceData } : device
+      )
+    );
+    setEditingDevice(null);
   };
 
   return (
@@ -55,12 +70,20 @@ export default function DevicesPage() {
           </Button>
         }
       />
-      <DeviceList devices={devices} />
+      <DeviceList devices={devices} onEditDevice={handleOpenEditModal} />
       <AddDeviceModal
         isOpen={isAddDeviceModalOpen}
         onOpenChange={setIsAddDeviceModalOpen}
         onDeviceAdd={handleDeviceAdd}
       />
+      {editingDevice && ( // Added
+        <EditDeviceModal
+          isOpen={isEditDeviceModalOpen}
+          onOpenChange={setIsEditDeviceModalOpen}
+          deviceToEdit={editingDevice}
+          onDeviceUpdate={handleDeviceUpdate}
+        />
+      )}
     </div>
   );
 }
