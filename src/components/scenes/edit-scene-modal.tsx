@@ -15,24 +15,24 @@ interface EditSceneModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   sceneToEdit: Scene | null;
-  onSceneUpdate: (sceneData: Pick<Scene, 'id' | 'name' | 'description'>) => void;
+  onSceneUpdate: (sceneData: Scene) => void; // Changed to expect full Scene object
 }
 
 export function EditSceneModal({ isOpen, onOpenChange, sceneToEdit, onSceneUpdate }: EditSceneModalProps) {
   if (!sceneToEdit) return null;
 
-  const handleSceneUpdated = (sceneData: Pick<Scene, 'id' | 'name' | 'description'>) => {
+  const handleSceneUpdated = (sceneData: Scene) => {
     onSceneUpdate(sceneData);
     onOpenChange(false); // Close modal after updating
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="sm:max-w-xl"> {/* Increased width */}
         <DialogHeader>
           <DialogTitle>Edit Scene: {sceneToEdit.name}</DialogTitle>
           <DialogDescription>
-            Modify the details for your smart scene.
+            Modify the details and device actions for your smart scene.
           </DialogDescription>
         </DialogHeader>
         <EditSceneForm

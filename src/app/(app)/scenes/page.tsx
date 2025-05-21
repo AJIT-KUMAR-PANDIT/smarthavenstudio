@@ -11,11 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddSceneModal } from '@/components/scenes/add-scene-modal';
 import { EditSceneModal } from '@/components/scenes/edit-scene-modal';
 import { DeleteSceneConfirmationModal } from '@/components/scenes/delete-scene-confirmation-modal';
-import type { Scene } from '@/types';
+import type { Scene, SceneAction } from '@/types'; // Added SceneAction
 import { useToast } from '@/hooks/use-toast';
 
 const initialMockScenes: Scene[] = [
-  { id: "1", name: "Movie Night", description: "Dim lights, enable surround sound, close blinds.", isActive: false, actions: [{deviceId: 'light1', action: 'dim', value: 20}], icon: Film },
+  { id: "1", name: "Movie Night", description: "Dim lights, enable surround sound, close blinds.", isActive: false, actions: [{deviceId: '1', action: 'turnOn', value: {isOn: true, brightness: 20}}], icon: Film },
   { id: "2", name: "Good Morning", description: "Gradually brighten lights, open blinds, play soft music.", isActive: false, actions: [], icon: Sun },
   { id: "3", name: "Focus Work", description: "Set cool white light, minimize distractions.", isActive: false, actions: [], icon: Palette },
   { id: "4", name: "Away Mode", description: "Turn off all non-essential devices, arm security.", isActive: false, actions: [], icon: Zap },
@@ -30,6 +30,7 @@ const rehydrateSceneIcons = (scenesToHydrate: Scene[]): Scene[] => {
     return {
       ...scene,
       icon: mockScene ? mockScene.icon : Film, // Default to Film icon if not found
+      actions: scene.actions || [], // Ensure actions array exists
     };
   });
 };
@@ -50,21 +51,20 @@ export default function ScenesPage() {
       const storedScenes = localStorage.getItem('smartHavenScenes');
       if (storedScenes) {
         const parsedScenes: Omit<Scene, 'icon'>[] = JSON.parse(storedScenes);
-        setScenes(rehydrateSceneIcons(parsedScenes as Scene[])); // Cast as Scene[] and let rehydrate handle icon
+        setScenes(rehydrateSceneIcons(parsedScenes as Scene[]));
       } else {
-        setScenes(initialMockScenes); // Already has icons
+        setScenes(initialMockScenes);
       }
     } catch (error) {
       console.error("Failed to load scenes from localStorage:", error);
-      setScenes(initialMockScenes); // Fallback
+      setScenes(initialMockScenes); 
     }
   }, []);
 
   // Save scenes to localStorage whenever they change
   useEffect(() => {
     try {
-      // Create a version of scenes without the icon component for serialization
-      const scenesToStore = scenes.map(({ icon, ...rest }) => rest);
+      const scenesToStore = scenes.map(({ icon, ...rest }) => ({...rest, actions: rest.actions || []}));
       if (scenesToStore.length > 0 || localStorage.getItem('smartHavenScenes')) {
          localStorage.setItem('smartHavenScenes', JSON.stringify(scenesToStore));
       }
@@ -74,13 +74,12 @@ export default function ScenesPage() {
   }, [scenes]);
 
 
-  const handleSceneAdd = (newSceneData: Omit<Scene, 'id' | 'isActive' | 'icon' | 'actions'>) => {
+  const handleSceneAdd = (newSceneData: Omit<Scene, 'id' | 'isActive' | 'icon'> & { actions: SceneAction[] }) => {
     const newScene: Scene = {
       ...newSceneData,
       id: String(scenes.length + 1 + Date.now()), 
       isActive: false,
-      icon: Film, 
-      actions: [], 
+      icon: Film, // Default icon, can be customized later or selected in form
     };
     setScenes(prevScenes => [...prevScenes, newScene]);
     toast({
@@ -99,10 +98,10 @@ export default function ScenesPage() {
     }
   };
 
-  const handleSceneUpdate = (updatedSceneData: Pick<Scene, 'id' | 'name' | 'description'>) => {
+  const handleSceneUpdate = (updatedSceneData: Scene) => { // Expects full Scene object
     setScenes(prevScenes =>
       prevScenes.map(scene =>
-        scene.id === updatedSceneData.id ? { ...scene, ...updatedSceneData } : scene
+        scene.id === updatedSceneData.id ? { ...scene, ...updatedSceneData, icon: scene.icon } : scene // Preserve original icon
       )
     );
     setEditingScene(null);
@@ -141,7 +140,7 @@ export default function ScenesPage() {
     toast({ title: `${scene?.name || 'Scene'} Activated`, description: scene?.description });
   };
 
-  const handleDeactivate = (id: string) => {
+  const handleDeactivate = (id:string) => {
      setScenes(prevScenes =>
       prevScenes.map(scene =>
         scene.id === id ? { ...scene, isActive: false } : scene
