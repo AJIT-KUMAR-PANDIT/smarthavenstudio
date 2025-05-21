@@ -4,10 +4,11 @@
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Armchair, BedDouble, CookingPot, LampDesk } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { RoomList } from '@/components/rooms/room-list';
 import { AddRoomModal } from '@/components/rooms/add-room-modal';
-import { EditRoomModal } from '@/components/rooms/edit-room-modal'; // Added
+import { EditRoomModal } from '@/components/rooms/edit-room-modal';
+import { DeleteRoomConfirmationModal } from '@/components/rooms/delete-room-confirmation-modal'; // Added
 import type { Room } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { getIconComponentByName } from '@/components/rooms/add-room-form';
@@ -59,19 +60,22 @@ const initialMockRooms: Room[] = [
 
 export default function RoomsPage() {
   const [isAddRoomModalOpen, setIsAddRoomModalOpen] = useState(false);
-  const [isEditRoomModalOpen, setIsEditRoomModalOpen] = useState(false); // Added
-  const [editingRoom, setEditingRoom] = useState<Room | null>(null); // Added
+  const [isEditRoomModalOpen, setIsEditRoomModalOpen] = useState(false);
+  const [isDeleteRoomModalOpen, setIsDeleteRoomModalOpen] = useState(false); // Added
+  const [editingRoom, setEditingRoom] = useState<Room | null>(null);
+  const [deletingRoom, setDeletingRoom] = useState<Room | null>(null); // Added
   const [rooms, setRooms] = useState<Room[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (rooms.length === 0) { // Only set initial if rooms are empty
+    if (rooms.length === 0) { 
        setRooms(initialMockRooms.map(room => ({
         ...room,
-        icon: getIconComponentByName(room.iconName)
+        icon: getIconComponentByName(room.iconName),
+        backgroundImage: room.backgroundImage || `https://placehold.co/600x400.png` // Ensure bg image
        })));
     }
-  }, []); 
+  }, [rooms.length]); // Added rooms.length to dependency array
 
   const handleRoomAdd = (newRoomData: Omit<Room, 'id' | 'devices' | 'icon'>) => {
     const newRoom: Room = {
@@ -79,7 +83,7 @@ export default function RoomsPage() {
       id: String(rooms.length + 1 + Date.now()), 
       devices: [], 
       icon: getIconComponentByName(newRoomData.iconName),
-      backgroundImage: `https://placehold.co/600x400.png`, 
+      backgroundImage: newRoomData.backgroundImage || `https://placehold.co/600x400.png`, 
     };
     setRooms(prevRooms => [...prevRooms, newRoom]);
     toast({
@@ -88,15 +92,15 @@ export default function RoomsPage() {
     });
   };
 
-  const handleOpenEditModal = (room: Room) => { // Added
+  const handleOpenEditModal = (room: Room) => {
     setEditingRoom(room);
     setIsEditRoomModalOpen(true);
   };
 
-  const handleRoomUpdate = (updatedRoomData: Omit<Room, 'devices' | 'icon'>) => { // Added
+  const handleRoomUpdate = (updatedRoomData: Omit<Room, 'devices' | 'icon'>) => {
     setRooms(prevRooms =>
       prevRooms.map(room =>
-        room.id === updatedRoomData.id ? { ...room, ...updatedRoomData, icon: getIconComponentByName(updatedRoomData.iconName) } : room
+        room.id === updatedRoomData.id ? { ...room, ...updatedRoomData, icon: getIconComponentByName(updatedRoomData.iconName), backgroundImage: updatedRoomData.backgroundImage || room.backgroundImage } : room
       )
     );
     setEditingRoom(null);
@@ -104,6 +108,24 @@ export default function RoomsPage() {
       title: 'Room Updated',
       description: `${updatedRoomData.name} has been successfully updated.`,
     });
+  };
+
+  const handleOpenDeleteModal = (room: Room) => { // Added
+    setDeletingRoom(room);
+    setIsDeleteRoomModalOpen(true);
+  };
+
+  const handleConfirmDeleteRoom = () => { // Added
+    if (deletingRoom) {
+      setRooms(prevRooms => prevRooms.filter(room => room.id !== deletingRoom.id));
+      toast({
+        title: 'Room Deleted',
+        description: `${deletingRoom.name} has been removed.`,
+        variant: 'destructive',
+      });
+      setDeletingRoom(null);
+      setIsDeleteRoomModalOpen(false);
+    }
   };
 
   return (
@@ -117,18 +139,30 @@ export default function RoomsPage() {
           </Button>
         }
       />
-      <RoomList rooms={rooms} onEditRoom={handleOpenEditModal} /> {/* Added onEditRoom */}
+      <RoomList 
+        rooms={rooms} 
+        onEditRoom={handleOpenEditModal} 
+        onDeleteRoom={handleOpenDeleteModal} // Added
+      />
       <AddRoomModal
         isOpen={isAddRoomModalOpen}
         onOpenChange={setIsAddRoomModalOpen}
         onRoomAdd={handleRoomAdd}
       />
-      {editingRoom && ( // Added
+      {editingRoom && (
         <EditRoomModal
           isOpen={isEditRoomModalOpen}
           onOpenChange={setIsEditRoomModalOpen}
           roomToEdit={editingRoom}
           onRoomUpdate={handleRoomUpdate}
+        />
+      )}
+      {deletingRoom && ( // Added
+        <DeleteRoomConfirmationModal
+          isOpen={isDeleteRoomModalOpen}
+          onOpenChange={setIsDeleteRoomModalOpen}
+          roomName={deletingRoom.name}
+          onConfirmDelete={handleConfirmDeleteRoom}
         />
       )}
     </div>
