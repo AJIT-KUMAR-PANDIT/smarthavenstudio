@@ -32,8 +32,8 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 shadow-sm">
-      {/* Logo Section - flex-shrink-0 to prevent shrinking if title is long, but ensure it's not too wide */}
-      <Link href="/dashboard" aria-label="SmartHaven Home" className="flex items-center flex-shrink-0">
+      {/* Logo Section - hidden on mobile, flex on md+ */}
+      <Link href="/dashboard" aria-label="SmartHaven Home" className="hidden md:flex items-center flex-shrink-0">
         <Logo className="h-8" />
       </Link>
 
