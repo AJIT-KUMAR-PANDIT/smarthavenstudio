@@ -9,10 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface DeviceListProps {
   devices: Device[];
-  onEditDevice: (device: Device) => void; // Added
+  onEditDevice: (device: Device) => void;
+  onDeleteDevice: (device: Device) => void; // Added
 }
 
-export function DeviceList({ devices, onEditDevice }: DeviceListProps) { // Updated props
+export function DeviceList({ devices, onEditDevice, onDeleteDevice }: DeviceListProps) { // Updated props
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRoom, setFilterRoom] = useState("all");
   const [filterType, setFilterType] = useState("all");
@@ -83,7 +84,8 @@ export function DeviceList({ devices, onEditDevice }: DeviceListProps) { // Upda
             device={device}
             onToggle={handleToggle}
             onSettingChange={handleSettingChange}
-            onEdit={() => onEditDevice(device)} // Added onEdit prop
+            onEdit={() => onEditDevice(device)}
+            onDelete={() => onDeleteDevice(device)} // Added onDelete prop
           />
         ))}
       </div>

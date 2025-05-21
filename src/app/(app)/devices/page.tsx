@@ -7,8 +7,10 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { DeviceList } from '@/components/devices/device-list';
 import { AddDeviceModal } from '@/components/devices/add-device-modal';
-import { EditDeviceModal } from '@/components/devices/edit-device-modal'; // Added
+import { EditDeviceModal } from '@/components/devices/edit-device-modal';
+import { DeleteDeviceConfirmationModal } from '@/components/devices/delete-device-confirmation-modal'; // Added
 import type { Device } from '@/types';
+import { useToast } from '@/hooks/use-toast'; // Added
 
 const initialMockDevices: Device[] = [
   { id: "1", name: "Living Room Light", room: "Living Room", type: "light", status: "on", isOnline: true, lastSeen: "Online", controllable: true, settings: { brightness: 75 } },
@@ -23,9 +25,12 @@ const initialMockDevices: Device[] = [
 
 export default function DevicesPage() {
   const [isAddDeviceModalOpen, setIsAddDeviceModalOpen] = useState(false);
-  const [isEditDeviceModalOpen, setIsEditDeviceModalOpen] = useState(false); // Added
-  const [editingDevice, setEditingDevice] = useState<Device | null>(null); // Added
+  const [isEditDeviceModalOpen, setIsEditDeviceModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // Added
+  const [editingDevice, setEditingDevice] = useState<Device | null>(null);
+  const [deletingDevice, setDeletingDevice] = useState<Device | null>(null); // Added
   const [devices, setDevices] = useState<Device[]>([]);
+  const { toast } = useToast(); // Added
 
   useEffect(() => {
     // Simulate loading devices, e.g., from localStorage if we were persisting
@@ -45,18 +50,36 @@ export default function DevicesPage() {
     setDevices(prevDevices => [...prevDevices, newDevice]);
   };
 
-  const handleOpenEditModal = (device: Device) => { // Added
+  const handleOpenEditModal = (device: Device) => {
     setEditingDevice(device);
     setIsEditDeviceModalOpen(true);
   };
 
-  const handleDeviceUpdate = (updatedDeviceData: Pick<Device, 'id' | 'name' | 'room' | 'type'>) => { // Added
+  const handleDeviceUpdate = (updatedDeviceData: Pick<Device, 'id' | 'name' | 'room' | 'type'>) => {
     setDevices(prevDevices =>
       prevDevices.map(device =>
         device.id === updatedDeviceData.id ? { ...device, ...updatedDeviceData } : device
       )
     );
     setEditingDevice(null);
+  };
+
+  const handleOpenDeleteModal = (device: Device) => { // Added
+    setDeletingDevice(device);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => { // Added
+    if (deletingDevice) {
+      setDevices(prevDevices => prevDevices.filter(device => device.id !== deletingDevice.id));
+      toast({
+        title: 'Device Deleted',
+        description: `${deletingDevice.name} has been removed.`,
+        variant: 'destructive',
+      });
+      setDeletingDevice(null);
+      setIsDeleteModalOpen(false);
+    }
   };
 
   return (
@@ -70,18 +93,30 @@ export default function DevicesPage() {
           </Button>
         }
       />
-      <DeviceList devices={devices} onEditDevice={handleOpenEditModal} />
+      <DeviceList
+        devices={devices}
+        onEditDevice={handleOpenEditModal}
+        onDeleteDevice={handleOpenDeleteModal} // Added
+      />
       <AddDeviceModal
         isOpen={isAddDeviceModalOpen}
         onOpenChange={setIsAddDeviceModalOpen}
         onDeviceAdd={handleDeviceAdd}
       />
-      {editingDevice && ( // Added
+      {editingDevice && (
         <EditDeviceModal
           isOpen={isEditDeviceModalOpen}
           onOpenChange={setIsEditDeviceModalOpen}
           deviceToEdit={editingDevice}
           onDeviceUpdate={handleDeviceUpdate}
+        />
+      )}
+      {deletingDevice && ( // Added
+        <DeleteDeviceConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onOpenChange={setIsDeleteModalOpen}
+          deviceName={deletingDevice.name}
+          onConfirmDelete={handleConfirmDelete}
         />
       )}
     </div>

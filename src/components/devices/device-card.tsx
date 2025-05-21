@@ -7,21 +7,19 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
-import { Wifi, WifiOff, Settings, ChevronDown, ChevronUp, Lightbulb, Thermometer, PanelTopOpen, Video, Speaker, Edit3 } from "lucide-react"; // Added Edit3
+import { Wifi, WifiOff, Settings, ChevronDown, ChevronUp, Lightbulb, Thermometer, PanelTopOpen, Video, Speaker, Edit3, Trash2 } from "lucide-react"; // Added Trash2
 import React, { useState } from "react";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const deviceTypeIcons = {
   light: Lightbulb,
   thermostat: Thermometer,
   blinds: PanelTopOpen,
-  sensor: Thermometer,
+  sensor: Thermometer, // Consider a more generic sensor icon if available or specific ones
   camera: Video,
   speaker: Speaker,
 };
@@ -30,10 +28,11 @@ interface DeviceCardProps {
   device: Device;
   onToggle?: (id: string, status: boolean) => void;
   onSettingChange?: (id:string, setting: string, value: any) => void;
-  onEdit: (device: Device) => void; // Added onEdit prop
+  onEdit: (device: Device) => void;
+  onDelete: (device: Device) => void; // Added onDelete prop
 }
 
-export function DeviceCard({ device, onToggle, onSettingChange, onEdit }: DeviceCardProps) { // Updated props
+export function DeviceCard({ device, onToggle, onSettingChange, onEdit, onDelete }: DeviceCardProps) { // Updated props
   const [isOn, setIsOn] = useState(device.status === 'on' || (typeof device.value === 'number' && device.value > 0));
   const [brightness, setBrightness] = useState(device.type === 'light' && typeof device.settings?.brightness === 'number' ? device.settings.brightness : 50);
   const [temperature, setTemperature] = useState(device.type === 'thermostat' && typeof device.settings?.temperature === 'number' ? device.settings.temperature : 22);
@@ -129,12 +128,14 @@ export function DeviceCard({ device, onToggle, onSettingChange, onEdit }: Device
             </PopoverTrigger>
             <PopoverContent className="w-56 p-2">
                 <div className="grid gap-1">
-                    <Button variant="outline" size="sm" className="w-full justify-start text-xs" onClick={() => onEdit(device)}> {/* Updated */}
+                    <Button variant="outline" size="sm" className="w-full justify-start text-xs" onClick={() => onEdit(device)}>
                         <Edit3 className="mr-2 h-3 w-3" /> Edit Device
                     </Button>
                     <Button variant="outline" size="sm" className="w-full justify-start text-xs">View Details</Button>
                     <Button variant="outline" size="sm" className="w-full justify-start text-xs">Device Logs</Button>
-                    <Button variant="destructive" size="sm" className="w-full justify-start text-xs">Remove Device</Button>
+                    <Button variant="destructive" size="sm" className="w-full justify-start text-xs" onClick={() => onDelete(device)}> {/* Updated */}
+                        <Trash2 className="mr-2 h-3 w-3" /> Remove Device
+                    </Button>
                 </div>
             </PopoverContent>
         </Popover>
