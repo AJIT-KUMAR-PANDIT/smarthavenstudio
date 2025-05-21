@@ -31,7 +31,10 @@ export function DeviceList({ devices, onEditDevice, onDeleteDevice }: DeviceList
 
   const filteredDevices = devices.filter(device => {
     const nameMatch = device.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const roomMatch = device.room.toLowerCase().includes(searchTerm.toLowerCase());
+    // Safely check device.room before calling toLowerCase()
+    const roomMatch = typeof device.room === 'string' 
+                      ? device.room.toLowerCase().includes(searchTerm.toLowerCase()) 
+                      : false;
     const searchMatch = nameMatch || roomMatch;
 
     const roomFilterMatch = filterRoom === "all" || device.room === filterRoom;
@@ -40,7 +43,7 @@ export function DeviceList({ devices, onEditDevice, onDeleteDevice }: DeviceList
     return searchMatch && roomFilterMatch && typeFilterMatch;
   });
 
-  const rooms = ["all", ...Array.from(new Set(devices.map(d => d.room))).sort()];
+  const rooms = ["all", ...Array.from(new Set(devices.map(d => d.room).filter(Boolean) as string[])).sort()];
   const types = ["all", ...Array.from(new Set(devices.map(d => d.type))).sort()];
 
   if (devices.length === 0) {
