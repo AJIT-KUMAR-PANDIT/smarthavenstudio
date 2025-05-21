@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Sidebar,
-  SidebarHeader,
   SidebarContent,
   SidebarFooter,
   SidebarMenu,
@@ -22,7 +21,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import type { NavItem } from "@/config/nav";
 import { mainNavItems, secondaryNavItems, userNavItems } from "@/config/nav";
-import { Logo } from "@/components/ui/logo";
 import { Button } from "../ui/button";
 import { useAuth } from "@/contexts/auth-context";
 import { LogOut } from "lucide-react";
@@ -124,10 +122,8 @@ export function AppSidebar({ className }: AppSidebarProps) {
       className={cn("border-r", className)}
     >
       <div className="flex flex-col h-full pt-16"> {/* Wrapper for padding */}
-        <SidebarHeader className="p-4">
-          <Logo />
-        </SidebarHeader>
-        <ScrollArea className="flex-1">
+        
+        <ScrollArea className="flex-1 pt-4"> {/* Added pt-4 to compensate for removed header */}
           <SidebarContent className="p-2">
             <SidebarGroup>
               <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
