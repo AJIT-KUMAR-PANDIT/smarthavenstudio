@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -26,6 +27,7 @@ import {
     Armchair, BedDouble, CookingPot, Bath, LampDesk, TreePalm, Home, 
     Building, Briefcase, Factory, Store, Warehouse, DoorOpen, type LucideIcon 
 } from 'lucide-react';
+import Image from 'next/image'; // For image preview
 
 export const roomIconsList: { name: string; component: LucideIcon }[] = [
   { name: 'Armchair', component: Armchair },
@@ -51,7 +53,7 @@ export const getIconComponentByName = (name?: string): LucideIcon => {
 const roomFormSchema = z.object({
   name: z.string().min(2, { message: 'Room name must be at least 2 characters.' }),
   iconName: z.string().min(1, { message: 'Please select an icon.' }),
-  // backgroundImage: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
+  roomImage: z.string().optional(), // To store data URI
 });
 
 type RoomFormValues = z.infer<typeof roomFormSchema>;
@@ -62,22 +64,41 @@ interface AddRoomFormProps {
 }
 
 export function AddRoomForm({ onRoomAdd, onCancel }: AddRoomFormProps) {
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
   const form = useForm<RoomFormValues>({
     resolver: zodResolver(roomFormSchema),
     defaultValues: {
       name: '',
       iconName: 'Default',
-      // backgroundImage: '',
+      roomImage: undefined,
     },
   });
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUri = reader.result as string;
+        setImagePreview(dataUri);
+        form.setValue('roomImage', dataUri);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview(null);
+      form.setValue('roomImage', undefined);
+    }
+  };
 
   function onSubmit(data: RoomFormValues) {
     onRoomAdd({
       name: data.name,
       iconName: data.iconName,
-      // backgroundImage: data.backgroundImage,
+      roomImage: data.roomImage,
     });
     form.reset();
+    setImagePreview(null);
   }
 
   return (
@@ -123,23 +144,25 @@ export function AddRoomForm({ onRoomAdd, onCancel }: AddRoomFormProps) {
             </FormItem>
           )}
         />
-        {/* 
-        <FormField
-          control={form.control}
-          name="backgroundImage"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Background Image URL (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="https://placehold.co/600x400.png" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+        <FormItem>
+          <FormLabel>Room Image (Optional)</FormLabel>
+          <FormControl>
+            <Input 
+              type="file" 
+              accept="image/*" 
+              onChange={handleImageChange} 
+              className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+            />
+          </FormControl>
+          {imagePreview && (
+            <div className="mt-2 relative w-full h-32 rounded-md overflow-hidden border">
+              <Image src={imagePreview} alt="Image preview" layout="fill" objectFit="cover" />
+            </div>
           )}
-        />
-        */}
+          <FormMessage />
+        </FormItem>
         <div className="flex justify-end gap-2 pt-4">
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={() => { form.reset(); setImagePreview(null); onCancel();}}>
             Cancel
           </Button>
           <Button type="submit">Create Room</Button>

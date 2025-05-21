@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -24,28 +23,31 @@ import {
 } from '@/components/ui/select';
 import type { Room } from '@/types';
 import { roomIconsList } from './add-room-form'; // Re-use the icon list
+import Image from 'next/image'; // For image preview
 
 const roomFormSchema = z.object({
   name: z.string().min(2, { message: 'Room name must be at least 2 characters.' }),
   iconName: z.string().min(1, { message: 'Please select an icon.' }),
-  // backgroundImage: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
+  roomImage: z.string().optional(), // To store data URI
 });
 
 type RoomFormValues = z.infer<typeof roomFormSchema>;
 
 interface EditRoomFormProps {
   roomToEdit: Room;
-  onRoomUpdate: (roomData: Omit<Room, 'devices' | 'icon'>) => void;
+  onRoomUpdate: (roomData: Omit<Room, 'devices' | 'icon'> & { id: string }) => void;
   onCancel: () => void;
 }
 
 export function EditRoomForm({ roomToEdit, onRoomUpdate, onCancel }: EditRoomFormProps) {
+  const [imagePreview, setImagePreview] = useState<string | null>(roomToEdit.roomImage || null);
+
   const form = useForm<RoomFormValues>({
     resolver: zodResolver(roomFormSchema),
     defaultValues: {
       name: roomToEdit.name,
       iconName: roomToEdit.iconName || 'Default',
-      // backgroundImage: roomToEdit.backgroundImage || '',
+      roomImage: roomToEdit.roomImage || undefined,
     },
   });
 
@@ -54,17 +56,41 @@ export function EditRoomForm({ roomToEdit, onRoomUpdate, onCancel }: EditRoomFor
       form.reset({
         name: roomToEdit.name,
         iconName: roomToEdit.iconName || 'Default',
-        // backgroundImage: roomToEdit.backgroundImage || '',
+        roomImage: roomToEdit.roomImage || undefined,
       });
+      setImagePreview(roomToEdit.roomImage || null);
     }
   }, [roomToEdit, form]);
 
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUri = reader.result as string;
+        setImagePreview(dataUri);
+        form.setValue('roomImage', dataUri);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // Option to clear image if needed, for now, keeps existing if no new file selected
+      // setImagePreview(null);
+      // form.setValue('roomImage', undefined);
+    }
+  };
+  
+  const handleRemoveImage = () => {
+    setImagePreview(null);
+    form.setValue('roomImage', undefined);
+  }
+
+
   function onSubmit(data: RoomFormValues) {
     onRoomUpdate({
-      id: roomToEdit.id, // Keep the original ID
+      id: roomToEdit.id, 
       name: data.name,
       iconName: data.iconName,
-      // backgroundImage: data.backgroundImage, // Handle if you re-enable background image editing
+      roomImage: data.roomImage,
     });
   }
 
@@ -111,23 +137,30 @@ export function EditRoomForm({ roomToEdit, onRoomUpdate, onCancel }: EditRoomFor
             </FormItem>
           )}
         />
-        {/* 
-        <FormField
-          control={form.control}
-          name="backgroundImage"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Background Image URL (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="https://placehold.co/600x400.png" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+        <FormItem>
+          <FormLabel>Room Image</FormLabel>
+          <FormControl>
+            <Input 
+              type="file" 
+              accept="image/*" 
+              onChange={handleImageChange}
+              className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+            />
+          </FormControl>
+          {imagePreview && (
+            <div className="mt-2 space-y-2">
+              <div className="relative w-full h-32 rounded-md overflow-hidden border">
+                <Image src={imagePreview} alt="Image preview" layout="fill" objectFit="cover" />
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={handleRemoveImage}>
+                Remove Image
+              </Button>
+            </div>
           )}
-        />
-        */}
+          <FormMessage />
+        </FormItem>
         <div className="flex justify-end gap-2 pt-4">
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={() => { form.reset(roomToEdit); setImagePreview(roomToEdit.roomImage || null); onCancel(); }}>
             Cancel
           </Button>
           <Button type="submit">Save Changes</Button>

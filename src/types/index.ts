@@ -4,7 +4,7 @@ import type { LucideIcon } from 'lucide-react';
 export interface Device {
   id: string;
   name: string;
-  room?: string; // Made room optional
+  room?: string;
   type: 'light' | 'thermostat' | 'blinds' | 'sensor' | 'camera' | 'speaker' | 'other';
   status: 'on' | 'off' | 'active' | 'inactive' | string; // string for custom statuses like temperature
   isOnline: boolean;
@@ -19,7 +19,7 @@ export interface Room {
   id: string;
   name: string;
   devices: Device[];
-  backgroundImage?: string; // URL for room image
+  roomImage?: string; // URL or Data URI for room image
   icon?: LucideIcon; // The actual Lucide icon component
   iconName?: string; // Name of the icon for storage/selection
 }

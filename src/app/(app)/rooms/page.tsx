@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -13,7 +12,7 @@ import type { Room } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { getIconComponentByName } from '@/components/rooms/add-room-form';
 
-const initialMockRooms: Room[] = [
+const initialMockRooms: Omit<Room, 'icon'>[] = [ // Ensure icon is not part of initial mock if it's derived
   { 
     id: "1", 
     name: "Living Room", 
@@ -23,7 +22,7 @@ const initialMockRooms: Room[] = [
       { id: "2", name: "Smart TV", room: "Living Room", type: "light", status: "on", isOnline: true, lastSeen: "Online", controllable: true },
       { id: "6", name: "Room Thermostat", room: "Living Room", type: "thermostat", status: "22°C", value: "22°C", isOnline: true, lastSeen: "Online", controllable: true },
     ], 
-    backgroundImage: "https://placehold.co/600x400.png",
+    roomImage: undefined, // Initially no custom image
   },
   { 
     id: "2", 
@@ -33,7 +32,7 @@ const initialMockRooms: Room[] = [
       { id: "3", name: "Bedside Lamp", room: "Bedroom", type: "light", status: "off", isOnline: true, lastSeen: "Online", controllable: true },
       { id: "4", name: "Blinds", room: "Bedroom", type: "blinds", status: "closed", isOnline: true, lastSeen: "Online", controllable: true },
     ], 
-    backgroundImage: "https://placehold.co/600x400.png",
+    roomImage: undefined,
   },
   { 
     id: "3", 
@@ -43,7 +42,7 @@ const initialMockRooms: Room[] = [
       { id: "5", name: "Overhead Lights", room: "Kitchen", type: "light", status: "on", isOnline: true, lastSeen: "Online", controllable: true, value: 100 },
       { id: "7", name: "Fridge Sensor", room: "Kitchen", type: "sensor", status: "4°C", value: "4°C", isOnline: true, lastSeen: "Online", controllable: false },
     ], 
-    backgroundImage: "https://placehold.co/600x400.png",
+    roomImage: undefined,
   },
    { 
     id: "4", 
@@ -53,15 +52,15 @@ const initialMockRooms: Room[] = [
       { id: "8", name: "Desk Lamp", room: "Office", type: "light", status: "on", isOnline: true, lastSeen: "Online", controllable: true, value: 60 },
       { id: "9", name: "Air Purifier", room: "Office", type: "sensor", status: "active", value: "AQI: 15", isOnline: true, lastSeen: "Online", controllable: true },
     ], 
-    backgroundImage: "https://placehold.co/600x400.png",
+    roomImage: undefined,
   },
 ];
 
-const rehydrateRoomIcons = (roomsToHydrate: Room[]): Room[] => {
+const rehydrateRoomData = (roomsToHydrate: Omit<Room, 'icon'>[]): Room[] => {
   return roomsToHydrate.map(room => ({
     ...room,
     icon: getIconComponentByName(room.iconName),
-    backgroundImage: room.backgroundImage || `https://placehold.co/600x400.png` 
+    // roomImage will be loaded as is from localStorage or remain undefined
   }));
 };
 
@@ -74,27 +73,24 @@ export default function RoomsPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const { toast } = useToast();
 
-  // Load rooms from localStorage on mount
   useEffect(() => {
     try {
       const storedRooms = localStorage.getItem('smartHavenRooms');
       if (storedRooms) {
-        const parsedRooms: Room[] = JSON.parse(storedRooms);
-        setRooms(rehydrateRoomIcons(parsedRooms));
+        const parsedRooms: Omit<Room, 'icon'>[] = JSON.parse(storedRooms);
+        setRooms(rehydrateRoomData(parsedRooms));
       } else {
-        setRooms(rehydrateRoomIcons(initialMockRooms));
+        setRooms(rehydrateRoomData(initialMockRooms));
       }
     } catch (error) {
       console.error("Failed to load rooms from localStorage:", error);
-      setRooms(rehydrateRoomIcons(initialMockRooms)); // Fallback
+      setRooms(rehydrateRoomData(initialMockRooms)); 
     }
   }, []);
 
-  // Save rooms to localStorage whenever they change
   useEffect(() => {
     try {
-      // Create a version of rooms without the icon component for serialization
-      const roomsToStore = rooms.map(({ icon, ...rest }) => rest);
+      const roomsToStore = rooms.map(({ icon, ...rest }) => rest); // Don't store React component
       if (roomsToStore.length > 0 || localStorage.getItem('smartHavenRooms')) {
         localStorage.setItem('smartHavenRooms', JSON.stringify(roomsToStore));
       }
@@ -110,7 +106,7 @@ export default function RoomsPage() {
       id: String(rooms.length + 1 + Date.now()), 
       devices: [], 
       icon: getIconComponentByName(newRoomData.iconName),
-      backgroundImage: newRoomData.backgroundImage || `https://placehold.co/600x400.png`, 
+      roomImage: newRoomData.roomImage, 
     };
     setRooms(prevRooms => [...prevRooms, newRoom]);
     toast({
@@ -124,10 +120,12 @@ export default function RoomsPage() {
     setIsEditRoomModalOpen(true);
   };
 
-  const handleRoomUpdate = (updatedRoomData: Omit<Room, 'devices' | 'icon'>) => {
+  const handleRoomUpdate = (updatedRoomData: Omit<Room, 'devices' | 'icon'> & { id: string }) => {
     setRooms(prevRooms =>
       prevRooms.map(room =>
-        room.id === updatedRoomData.id ? { ...room, ...updatedRoomData, icon: getIconComponentByName(updatedRoomData.iconName), backgroundImage: updatedRoomData.backgroundImage || room.backgroundImage } : room
+        room.id === updatedRoomData.id 
+        ? { ...room, ...updatedRoomData, icon: getIconComponentByName(updatedRoomData.iconName), roomImage: updatedRoomData.roomImage } 
+        : room
       )
     );
     setEditingRoom(null);
