@@ -48,6 +48,7 @@ export function EnergyUsageChart() {
         <CardDescription>Monthly energy consumption for the current year.</CardDescription>
       </CardHeader>
       <CardContent>
+        {/* This div will handle horizontal scrolling if the ChartContainer exceeds its width */}
         <div className="overflow-x-auto">
           <ChartContainer config={chartConfig} className="h-[300px] w-full min-w-[600px]">
             {/* ResponsiveContainer will adapt to ChartContainer's size */}
