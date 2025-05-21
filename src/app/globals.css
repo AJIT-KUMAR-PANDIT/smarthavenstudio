@@ -34,15 +34,15 @@ body {
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
 
-    /* Sidebar specific vars from shadcn/ui, ensure they align with the dark theme */
-    --sidebar-background: 0 0% 12.9%; /* Match dark background */
-    --sidebar-foreground: 0 0% 98%; /* Light text for dark sidebar */
-    --sidebar-primary: 263 52% 55%; /* Brighter primary for sidebar focus */
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 231 48% 58%; /* Brighter accent for sidebar focus */
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 25%; /* Darker border for dark sidebar */
-    --sidebar-ring: 231 48% 60%; /* Accent related ring for sidebar */
+    /* Sidebar specific vars for light mode */
+    --sidebar-background: 240 4.8% 95.9%; /* Light gray, similar to secondary */
+    --sidebar-foreground: 240 10% 3.9%;    /* Dark text, similar to foreground */
+    --sidebar-primary: 263 52% 50%;       /* Consistent with main primary */
+    --sidebar-primary-foreground: 0 0% 98%; /* Consistent with main primary-foreground */
+    --sidebar-accent: 231 48% 54%;        /* Consistent with main accent */
+    --sidebar-accent-foreground: 0 0% 98%;  /* Consistent with main accent-foreground */
+    --sidebar-border: 240 5.9% 90%;       /* Light border, similar to main border */
+    --sidebar-ring: 263 52% 50%;          /* Consistent with main ring */
   }
 
   .dark {
@@ -71,14 +71,15 @@ body {
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
+    /* Sidebar specific vars for dark mode */
     --sidebar-background: 0 0% 10%; /* Even darker for sidebar */
     --sidebar-foreground: 0 0% 85%; 
-    --sidebar-primary: 263 52% 55%;
+    --sidebar-primary: 263 52% 55%; /* Slightly brighter primary for dark sidebar focus */
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 231 48% 58%;
+    --sidebar-accent: 231 48% 58%; /* Slightly brighter accent for dark sidebar focus */
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 231 48% 60%;
+    --sidebar-border: 0 0% 20%; /* Darker border for dark sidebar */
+    --sidebar-ring: 231 48% 60%; /* Accent related ring for dark sidebar */
   }
 }
 
