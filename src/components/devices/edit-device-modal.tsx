@@ -35,7 +35,7 @@ import type { Device } from '@/types';
 
 const deviceSchema = z.object({
   name: z.string().min(2, { message: 'Device name must be at least 2 characters.' }),
-  room: z.string().min(2, { message: 'Room name must be at least 2 characters.' }),
+  room: z.string().min(1, { message: 'Please select or enter a room name.' }), // Changed min to 1 for selection
   type: z.enum(['light', 'thermostat', 'blinds', 'sensor', 'camera', 'speaker'], {
     required_error: 'You need to select a device type.',
   }),
@@ -48,9 +48,10 @@ interface EditDeviceModalProps {
   onOpenChange: (isOpen: boolean) => void;
   deviceToEdit: Device;
   onDeviceUpdate: (device: Pick<Device, 'id' | 'name' | 'room' | 'type'>) => void;
+  availableRooms: string[];
 }
 
-export function EditDeviceModal({ isOpen, onOpenChange, deviceToEdit, onDeviceUpdate }: EditDeviceModalProps) {
+export function EditDeviceModal({ isOpen, onOpenChange, deviceToEdit, onDeviceUpdate, availableRooms }: EditDeviceModalProps) {
   const { toast } = useToast();
   const form = useForm<EditDeviceFormValues>({
     resolver: zodResolver(deviceSchema),
@@ -86,11 +87,7 @@ export function EditDeviceModal({ isOpen, onOpenChange, deviceToEdit, onDeviceUp
 
   const handleModalOpenChange = (open: boolean) => {
     if (!open) {
-      form.reset({ // Reset form when closing via X or overlay click
-        name: deviceToEdit.name,
-        room: deviceToEdit.room,
-        type: deviceToEdit.type,
-      });
+      // No explicit reset here, useEffect handles it when isOpen becomes true next time with a device
     }
     onOpenChange(open);
   };
@@ -125,9 +122,20 @@ export function EditDeviceModal({ isOpen, onOpenChange, deviceToEdit, onDeviceUp
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Room</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Living Room" {...field} />
-                  </FormControl>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a room" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {availableRooms.map((roomName) => (
+                        <SelectItem key={roomName} value={roomName}>
+                          {roomName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

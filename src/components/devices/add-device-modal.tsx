@@ -34,7 +34,7 @@ import type { Device } from '@/types';
 
 const deviceSchema = z.object({
   name: z.string().min(2, { message: 'Device name must be at least 2 characters.' }),
-  room: z.string().min(2, { message: 'Room name must be at least 2 characters.' }),
+  room: z.string().min(1, { message: 'Please select or enter a room name.' }), // Changed min to 1 for selection
   type: z.enum(['light', 'thermostat', 'blinds', 'sensor', 'camera', 'speaker'], {
     required_error: 'You need to select a device type.',
   }),
@@ -46,9 +46,10 @@ interface AddDeviceModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onDeviceAdd: (device: Omit<Device, 'id' | 'status' | 'isOnline' | 'lastSeen' | 'controllable' | 'settings' | 'icon' | 'value'> & {type: AddDeviceFormValues['type']}) => void;
+  availableRooms: string[];
 }
 
-export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd }: AddDeviceModalProps) {
+export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd, availableRooms }: AddDeviceModalProps) {
   const { toast } = useToast();
   const form = useForm<AddDeviceFormValues>({
     resolver: zodResolver(deviceSchema),
@@ -108,10 +109,28 @@ export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd }: AddDeviceM
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Room</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a room" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {availableRooms.map((roomName) => (
+                        <SelectItem key={roomName} value={roomName}>
+                          {roomName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                  {/* 
+                  // Alternative: If you want to allow typing new rooms as well, use a Combobox or keep Input.
+                  // For now, sticking to Select as per "selectable dropdown".
                   <FormControl>
                     <Input placeholder="e.g., Living Room" {...field} />
                   </FormControl>
-                  <FormMessage />
+                   */}
                 </FormItem>
               )}
             />
