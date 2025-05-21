@@ -7,21 +7,21 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppSidebar } from '@/components/layout/app-sidebar';
-import { BottomNavigationBar } from '@/components/layout/bottom-navigation'; // Added
-import { useIsMobile } from '@/hooks/use-mobile'; // Added
+import { BottomNavigationBar } from '@/components/layout/bottom-navigation';
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   SidebarProvider,
   SidebarInset,
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils'; // Added
+import { cn } from '@/lib/utils';
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   const { isAuthenticated, isPinSet } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
-  const isMobile = useIsMobile(); // Added
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -50,17 +50,19 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       {!isMobile && <AppSidebar />} 
       {!isMobile && <SidebarRail />} 
       <div className={cn(
-        "flex flex-col flex-1 min-h-screen overflow-x-hidden overflow-y-auto", 
-        isMobile && "pb-16"
+        "flex flex-col flex-1 min-h-screen overflow-x-hidden", // Removed overflow-y-auto from here
+        isMobile && "pb-16" 
       )}>
-        <AppHeader />
-        <SidebarInset>
+        <AppHeader /> {/* This is now fixed */}
+        <SidebarInset className={cn(
+          "pt-16 flex-1 overflow-y-auto" // Add pt-16 for fixed header and manage y-scroll here
+        )}>
           <main className="flex-1 p-4 md:p-6 lg:p-8">
             {children}
           </main>
         </SidebarInset>
       </div>
-      {isMobile && <BottomNavigationBar />} {/* Added */}
+      {isMobile && <BottomNavigationBar />}
     </SidebarProvider>
   );
 }

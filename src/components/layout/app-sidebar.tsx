@@ -26,7 +26,7 @@ import { Logo } from "@/components/ui/logo";
 import { Button } from "../ui/button";
 import { useAuth } from "@/contexts/auth-context";
 import { LogOut } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile"; // Added
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface AppSidebarProps {
   className?: string;
@@ -35,9 +35,8 @@ interface AppSidebarProps {
 export function AppSidebar({ className }: AppSidebarProps) {
   const pathname = usePathname();
   const { logout, user } = useAuth();
-  const isMobile = useIsMobile(); // Added
+  const isMobile = useIsMobile();
 
-  // Sidebar is not rendered on mobile, BottomNavigationBar is used instead
   if (isMobile) {
     return null;
   }
@@ -124,33 +123,35 @@ export function AppSidebar({ className }: AppSidebarProps) {
       collapsible="icon"
       className={cn("border-r", className)}
     >
-      <SidebarHeader className="p-4">
-        <Logo />
-      </SidebarHeader>
-      <ScrollArea className="flex-1">
-        <SidebarContent className="p-2">
-          <SidebarGroup>
-            <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
-            <SidebarMenu>{renderNavItems(mainNavItems)}</SidebarMenu>
-          </SidebarGroup>
-          <SidebarSeparator />
-          <SidebarGroup>
-            <SidebarGroupLabel>Overview</SidebarGroupLabel>
-            <SidebarMenu>{renderNavItems(secondaryNavItems)}</SidebarMenu>
-          </SidebarGroup>
-          <SidebarSeparator />
-           <SidebarGroup>
-            <SidebarGroupLabel>Account</SidebarGroupLabel>
-            <SidebarMenu>{renderNavItems(userNavItems)}</SidebarMenu>
-          </SidebarGroup>
-        </SidebarContent>
-      </ScrollArea>
-      <SidebarFooter className="p-4 border-t">
-        <Button variant="ghost" onClick={logout} className="w-full justify-start group-data-[collapsible=icon]:justify-center">
-          <LogOut className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
-          <span className="group-data-[collapsible=icon]:hidden">Logout</span>
-        </Button>
-      </SidebarFooter>
+      <div className="flex flex-col h-full pt-16"> {/* Wrapper for padding */}
+        <SidebarHeader className="p-4">
+          <Logo />
+        </SidebarHeader>
+        <ScrollArea className="flex-1">
+          <SidebarContent className="p-2">
+            <SidebarGroup>
+              <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
+              <SidebarMenu>{renderNavItems(mainNavItems)}</SidebarMenu>
+            </SidebarGroup>
+            <SidebarSeparator />
+            <SidebarGroup>
+              <SidebarGroupLabel>Overview</SidebarGroupLabel>
+              <SidebarMenu>{renderNavItems(secondaryNavItems)}</SidebarMenu>
+            </SidebarGroup>
+            <SidebarSeparator />
+            <SidebarGroup>
+              <SidebarGroupLabel>Account</SidebarGroupLabel>
+              <SidebarMenu>{renderNavItems(userNavItems)}</SidebarMenu>
+            </SidebarGroup>
+          </SidebarContent>
+        </ScrollArea>
+        <SidebarFooter className="p-4 border-t">
+          <Button variant="ghost" onClick={logout} className="w-full justify-start group-data-[collapsible=icon]:justify-center">
+            <LogOut className="mr-2 h-4 w-4 group-data-[collapsible=icon]:mr-0" />
+            <span className="group-data-[collapsible=icon]:hidden">Logout</span>
+          </Button>
+        </SidebarFooter>
+      </div>
     </Sidebar>
   );
 }
