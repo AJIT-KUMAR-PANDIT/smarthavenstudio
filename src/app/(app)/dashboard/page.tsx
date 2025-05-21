@@ -3,7 +3,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { SummaryCard } from '@/components/dashboard/summary-card';
 import { EnergyUsageChart } from '@/components/dashboard/energy-usage-chart';
 import { ActiveSceneCard } from '@/components/dashboard/active-scene-card';
-import { Lightbulb, Thermometer, Tv, ShieldAlert } from 'lucide-react';
+import { Lightbulb, Thermometer, Tv, ShieldAlert, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
