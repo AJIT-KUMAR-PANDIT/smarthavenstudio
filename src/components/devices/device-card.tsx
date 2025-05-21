@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
-import { Wifi, WifiOff, Settings, ChevronDown, ChevronUp, Lightbulb, Thermometer, Wind, VenetianBlinds } from "lucide-react";
+import { Wifi, WifiOff, Settings, ChevronDown, ChevronUp, Lightbulb, Thermometer, PanelTopOpen, Video, Speaker } from "lucide-react";
 import React, { useState } from "react";
 import {
   DropdownMenu,
@@ -19,10 +19,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 const deviceTypeIcons = {
   light: Lightbulb,
   thermostat: Thermometer,
-  blinds: VenetianBlinds,
-  sensor: Thermometer, // Example, could be specific sensor icons
-  camera: VenetianBlinds, // Placeholder
-  speaker: VenetianBlinds, // Placeholder
+  blinds: PanelTopOpen,
+  sensor: Thermometer, // Example, could be specific sensor icons for different sensor types
+  camera: Video,
+  speaker: Speaker,
 };
 
 interface DeviceCardProps {
@@ -67,7 +67,7 @@ export function DeviceCard({ device, onToggle, onSettingChange }: DeviceCardProp
         </div>
         <div className="flex items-center gap-2">
          {device.isOnline ? <Wifi className="h-4 w-4 text-green-500" /> : <WifiOff className="h-4 w-4 text-red-500" />}
-          {device.controllable && (device.type === 'light' || device.type === 'thermostat') && (
+          {device.controllable && (device.type === 'light' || device.type === 'thermostat' || device.type === 'blinds') && ( // Added blinds here as they are usually controllable for expansion
              <Button variant="ghost" size="icon" onClick={() => setIsExpanded(!isExpanded)} className="h-7 w-7">
               {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
@@ -114,6 +114,7 @@ export function DeviceCard({ device, onToggle, onSettingChange }: DeviceCardProp
                 />
               </div>
             )}
+            {/* Add controls for other device types here if needed, e.g., blinds position */}
           </div>
         )}
       </CardContent>
