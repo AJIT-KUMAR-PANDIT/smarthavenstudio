@@ -31,12 +31,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import type { Device, Room } from '@/types'; // Added Room type
+import type { Device, Room } from '@/types';
 
 const deviceSchema = z.object({
   name: z.string().min(2, { message: 'Device name must be at least 2 characters.' }),
-  room: z.string().min(1, { message: 'Please select or enter a room name.' }),
-  type: z.enum(['light', 'thermostat', 'blinds', 'sensor', 'camera', 'speaker', 'other'], { // Added 'other'
+  room: z.string().optional(), // Made room optional
+  type: z.enum(['light', 'thermostat', 'blinds', 'sensor', 'camera', 'speaker', 'other'], {
     required_error: 'You need to select a device type.',
   }),
 });
@@ -47,7 +47,6 @@ interface AddDeviceModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onDeviceAdd: (device: Omit<Device, 'id' | 'status' | 'isOnline' | 'lastSeen' | 'controllable' | 'settings' | 'icon' | 'value'> & {type: AddDeviceFormValues['type']}) => void;
-  // availableRooms prop removed
 }
 
 export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd }: AddDeviceModalProps) {
@@ -58,7 +57,7 @@ export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd }: AddDeviceM
     resolver: zodResolver(deviceSchema),
     defaultValues: {
       name: '',
-      room: '',
+      room: '', // Or undefined, zod optional will handle it
       type: undefined,
     },
   });
@@ -68,7 +67,7 @@ export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd }: AddDeviceM
       try {
         const storedRooms = localStorage.getItem('smartHavenRooms');
         if (storedRooms) {
-          const parsedRooms: Pick<Room, 'name'>[] = JSON.parse(storedRooms); // Only need names for the dropdown
+          const parsedRooms: Pick<Room, 'name'>[] = JSON.parse(storedRooms);
           setAvailableRoomsInModal(Array.from(new Set(parsedRooms.map(r => r.name))).sort());
         } else {
           setAvailableRoomsInModal([]);
@@ -83,10 +82,9 @@ export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd }: AddDeviceM
   function onSubmit(data: AddDeviceFormValues) {
     onDeviceAdd({
         name: data.name,
-        room: data.room,
+        room: data.room || undefined, // Ensure undefined if empty string
         type: data.type,
     });
-    // Toast is now handled in the parent page
     form.reset();
     onOpenChange(false);
   }
@@ -125,8 +123,8 @@ export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd }: AddDeviceM
               name="room"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Room</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormLabel>Room (Optional)</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value ?? ""}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a room" />
@@ -154,7 +152,7 @@ export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd }: AddDeviceM
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Device Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a device type" />
@@ -167,7 +165,7 @@ export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd }: AddDeviceM
                       <SelectItem value="sensor">Sensor</SelectItem>
                       <SelectItem value="camera">Camera</SelectItem>
                       <SelectItem value="speaker">Speaker</SelectItem>
-                      <SelectItem value="other">Other</SelectItem> {/* Added 'other' */}
+                      <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

@@ -4,8 +4,8 @@ import type { LucideIcon } from 'lucide-react';
 export interface Device {
   id: string;
   name: string;
-  room: string;
-  type: 'light' | 'thermostat' | 'blinds' | 'sensor' | 'camera' | 'speaker' | 'other'; // Added 'other'
+  room?: string; // Made room optional
+  type: 'light' | 'thermostat' | 'blinds' | 'sensor' | 'camera' | 'speaker' | 'other';
   status: 'on' | 'off' | 'active' | 'inactive' | string; // string for custom statuses like temperature
   isOnline: boolean;
   icon?: React.ElementType; // Lucide icon component
