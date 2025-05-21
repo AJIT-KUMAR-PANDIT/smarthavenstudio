@@ -1,3 +1,5 @@
+'use client';
+
 import type { Metadata } from 'next';
 import { PageHeader } from '@/components/shared/page-header';
 import { NotificationItem } from '@/components/notifications/notification-item';
@@ -5,6 +7,8 @@ import type { NotificationMessage } from '@/types';
 import { Button } from '@/components/ui/button';
 import { CheckCheck, Trash2 } from 'lucide-react';
 
+// Metadata should be exported from Server Components or moved to a Server Component parent if this becomes client-only for specific reasons.
+// For now, we'll keep it, but be mindful if complex data fetching for metadata is needed.
 export const metadata: Metadata = {
   title: 'Notifications - SmartHaven',
   description: 'View your smart home notifications and alerts.',
