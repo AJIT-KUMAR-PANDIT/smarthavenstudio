@@ -58,10 +58,10 @@ export default function LogsPage() {
         title="System Logs" 
         description="Monitor system events, device activity, and troubleshoot issues."
         actions={
-            <div className="flex gap-2">
-                <Input placeholder="Filter logs..." className="max-w-xs bg-card" />
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <Input placeholder="Filter logs..." className="w-full sm:max-w-xs bg-card" />
                 <Select defaultValue="all">
-                    <SelectTrigger className="w-[180px] bg-card">
+                    <SelectTrigger className="w-full sm:w-[180px] bg-card">
                         <SelectValue placeholder="Log Level" />
                     </SelectTrigger>
                     <SelectContent>
@@ -72,10 +72,10 @@ export default function LogsPage() {
                         <SelectItem value="debug">Debug</SelectItem>
                     </SelectContent>
                 </Select>
-                 <Button variant="outline">
+                 <Button variant="outline" className="w-full sm:w-auto">
                     <Filter className="mr-2 h-4 w-4" /> Apply Filters
                 </Button>
-                 <Button variant="default">
+                 <Button variant="default" className="w-full sm:w-auto">
                     <Download className="mr-2 h-4 w-4" /> Export Logs
                 </Button>
             </div>

@@ -34,7 +34,7 @@ export function RoomCard({ room, onEdit, onDelete }: RoomCardProps) {
                 fill={true}
                 style={{objectFit: "cover"}}
                 className="transition-transform duration-300 group-hover:scale-105"
-                data-ai-hint="room interior"
+                data-ai-hint="room interior" // Added data-ai-hint
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
          </div>

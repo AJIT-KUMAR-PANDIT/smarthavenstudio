@@ -25,19 +25,17 @@ import { ThemeSwitcher } from "@/components/settings/theme-switcher";
 import { useAuth } from "@/contexts/auth-context";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Logo } from "@/components/ui/logo";
-import { useIsMobile } from "@/hooks/use-mobile"; // Added
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function AppHeader() {
   const { user, logout } = useAuth();
-  const isMobile = useIsMobile(); // Added
+  const isMobile = useIsMobile();
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 shadow-sm">
       <div className="flex items-center gap-2">
-        {/* Show SidebarTrigger only on desktop/tablet if sidebar is collapsible, hide on mobile */}
         {!isMobile && (
-          <div className="md:hidden"> {/* This would be for tablet if sidebar can be triggered */}
-             {/* <SidebarTrigger />  // Potentially keep for tablet, but for now, let's simplify to only desktop sidebar */}
+          <div className="md:hidden">
           </div>
         )}
          <Link href="/dashboard" aria-label="SmartHaven Home" className="flex items-center">
@@ -46,13 +44,13 @@ export function AppHeader() {
       </div>
       
       <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-        <form className="ml-auto flex-1 sm:flex-initial">
+        <form className="ml-auto flex-1 sm:max-w-xs"> {/* Adjusted for better mobile sizing */}
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search..." // Simplified placeholder
-              className="pl-8 sm:w-[200px] md:w-[200px] lg:w-[300px] bg-card"
+              placeholder="Search..."
+              className="pl-8 w-full bg-card sm:w-[200px] md:w-[200px] lg:w-[300px]" // w-full for mobile, specific widths for larger
             />
           </div>
         </form>

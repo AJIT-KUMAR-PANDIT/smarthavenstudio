@@ -6,9 +6,9 @@ import { ProfileSettings } from '@/components/settings/profile-settings';
 import { SecuritySettings } from '@/components/settings/security-settings';
 import { MenuCustomization } from '@/components/settings/menu-customization';
 import { ThemeSwitcher } from '@/components/settings/theme-switcher';
-import { ConnectivitySettings } from '@/components/settings/connectivity-settings'; // Added
+import { ConnectivitySettings } from '@/components/settings/connectivity-settings';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserCog, Shield, ListCollapse, Palette, Network } from "lucide-react"; // Added Network
+import { UserCog, Shield, ListCollapse, Palette, Network } from "lucide-react";
 
 export const metadata: Metadata = {
   title: 'Settings - SmartHaven',
@@ -24,13 +24,15 @@ export default function SettingsPage() {
       />
       
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 mb-6"> {/* Adjusted grid-cols for new tab */}
-          <TabsTrigger value="profile"><UserCog className="mr-2 h-4 w-4 sm:hidden md:inline-block"/>Profile</TabsTrigger>
-          <TabsTrigger value="security"><Shield className="mr-2 h-4 w-4 sm:hidden md:inline-block"/>Security</TabsTrigger>
-          <TabsTrigger value="appearance"><Palette className="mr-2 h-4 w-4 sm:hidden md:inline-block"/>Appearance</TabsTrigger>
-          <TabsTrigger value="connectivity"><Network className="mr-2 h-4 w-4 sm:hidden md:inline-block"/>Connectivity</TabsTrigger> {/* Added Connectivity Tab */}
-          <TabsTrigger value="menu"><ListCollapse className="mr-2 h-4 w-4 sm:hidden md:inline-block"/>Menu</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto whitespace-nowrap pb-2 mb-6 border-b"> {/* Wrapper for horizontal scroll */}
+          <TabsList className="inline-flex h-auto p-1 bg-transparent"> {/* Adjusted TabsList */}
+            <TabsTrigger value="profile"><UserCog className="mr-2 h-4 w-4 sm:hidden md:inline-block"/>Profile</TabsTrigger>
+            <TabsTrigger value="security"><Shield className="mr-2 h-4 w-4 sm:hidden md:inline-block"/>Security</TabsTrigger>
+            <TabsTrigger value="appearance"><Palette className="mr-2 h-4 w-4 sm:hidden md:inline-block"/>Appearance</TabsTrigger>
+            <TabsTrigger value="connectivity"><Network className="mr-2 h-4 w-4 sm:hidden md:inline-block"/>Connectivity</TabsTrigger>
+            <TabsTrigger value="menu"><ListCollapse className="mr-2 h-4 w-4 sm:hidden md:inline-block"/>Menu</TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="profile">
           <ProfileSettings />
@@ -63,7 +65,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="connectivity"> {/* Added Connectivity Content */}
+        <TabsContent value="connectivity">
           <ConnectivitySettings />
         </TabsContent>
         <TabsContent value="menu">
