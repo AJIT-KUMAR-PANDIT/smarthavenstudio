@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react'; // Added useState here
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { AppHeader } from '@/components/layout/app-header';
@@ -16,7 +16,7 @@ import { Loader2 } from 'lucide-react';
 export default function AppLayout({ children }: { children: ReactNode }) {
   const { isAuthenticated, isPinSet } = useAuth();
   const router = useRouter();
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [isLoading, setIsLoading] = useState(true); // Changed React.useState to useState
 
   useEffect(() => {
     // Give a moment for auth state to initialize from localStorage
