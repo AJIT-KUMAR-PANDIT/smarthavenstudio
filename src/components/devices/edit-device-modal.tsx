@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -31,12 +31,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import type { Device } from '@/types';
+import type { Device, Room } from '@/types'; // Added Room type
 
 const deviceSchema = z.object({
   name: z.string().min(2, { message: 'Device name must be at least 2 characters.' }),
-  room: z.string().min(1, { message: 'Please select or enter a room name.' }), // Changed min to 1 for selection
-  type: z.enum(['light', 'thermostat', 'blinds', 'sensor', 'camera', 'speaker'], {
+  room: z.string().min(1, { message: 'Please select or enter a room name.' }),
+  type: z.enum(['light', 'thermostat', 'blinds', 'sensor', 'camera', 'speaker', 'other'], { // Added 'other'
     required_error: 'You need to select a device type.',
   }),
 });
@@ -48,28 +48,42 @@ interface EditDeviceModalProps {
   onOpenChange: (isOpen: boolean) => void;
   deviceToEdit: Device;
   onDeviceUpdate: (device: Pick<Device, 'id' | 'name' | 'room' | 'type'>) => void;
-  availableRooms: string[];
+  // availableRooms prop removed
 }
 
-export function EditDeviceModal({ isOpen, onOpenChange, deviceToEdit, onDeviceUpdate, availableRooms }: EditDeviceModalProps) {
+export function EditDeviceModal({ isOpen, onOpenChange, deviceToEdit, onDeviceUpdate }: EditDeviceModalProps) {
   const { toast } = useToast();
+  const [availableRoomsInModal, setAvailableRoomsInModal] = useState<string[]>([]);
+
   const form = useForm<EditDeviceFormValues>({
     resolver: zodResolver(deviceSchema),
-    defaultValues: {
-      name: deviceToEdit.name,
-      room: deviceToEdit.room,
-      type: deviceToEdit.type,
-    },
+    // Default values will be set by useEffect
   });
 
   useEffect(() => {
-    // Reset form with new deviceToEdit values when it changes or modal opens
-    if (deviceToEdit && isOpen) {
-      form.reset({
-        name: deviceToEdit.name,
-        room: deviceToEdit.room,
-        type: deviceToEdit.type,
-      });
+    if (isOpen) {
+      // Load rooms from localStorage
+      try {
+        const storedRooms = localStorage.getItem('smartHavenRooms');
+        if (storedRooms) {
+          const parsedRooms: Pick<Room, 'name'>[] = JSON.parse(storedRooms);
+          setAvailableRoomsInModal(Array.from(new Set(parsedRooms.map(r => r.name))).sort());
+        } else {
+          setAvailableRoomsInModal([]);
+        }
+      } catch (error) {
+        console.error("Failed to load rooms from localStorage for modal:", error);
+        setAvailableRoomsInModal([]);
+      }
+
+      // Reset form with new deviceToEdit values when it changes or modal opens
+      if (deviceToEdit) {
+        form.reset({
+          name: deviceToEdit.name,
+          room: deviceToEdit.room,
+          type: deviceToEdit.type,
+        });
+      }
     }
   }, [deviceToEdit, isOpen, form]);
 
@@ -78,17 +92,11 @@ export function EditDeviceModal({ isOpen, onOpenChange, deviceToEdit, onDeviceUp
       id: deviceToEdit.id,
       ...data,
     });
-    toast({
-      title: 'Device Updated',
-      description: `${data.name} has been updated.`,
-    });
+    // Toast is handled by parent
     onOpenChange(false);
   }
 
   const handleModalOpenChange = (open: boolean) => {
-    if (!open) {
-      // No explicit reset here, useEffect handles it when isOpen becomes true next time with a device
-    }
     onOpenChange(open);
   };
 
@@ -96,7 +104,7 @@ export function EditDeviceModal({ isOpen, onOpenChange, deviceToEdit, onDeviceUp
     <Dialog open={isOpen} onOpenChange={handleModalOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit Device: {deviceToEdit.name}</DialogTitle>
+          <DialogTitle>Edit Device: {deviceToEdit?.name}</DialogTitle>
           <DialogDescription>
             Modify the details for your smart device.
           </DialogDescription>
@@ -122,18 +130,22 @@ export function EditDeviceModal({ isOpen, onOpenChange, deviceToEdit, onDeviceUp
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Room</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value} defaultValue={deviceToEdit?.room}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a room" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {availableRooms.map((roomName) => (
-                        <SelectItem key={roomName} value={roomName}>
-                          {roomName}
-                        </SelectItem>
-                      ))}
+                      {availableRoomsInModal.length > 0 ? (
+                        availableRoomsInModal.map((roomName) => (
+                          <SelectItem key={roomName} value={roomName}>
+                            {roomName}
+                          </SelectItem>
+                        ))
+                      ) : (
+                         <SelectItem value={deviceToEdit?.room || ""} disabled>{deviceToEdit?.room || "No rooms available"}</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -146,7 +158,7 @@ export function EditDeviceModal({ isOpen, onOpenChange, deviceToEdit, onDeviceUp
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Device Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value} defaultValue={deviceToEdit?.type}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a device type" />
@@ -159,6 +171,7 @@ export function EditDeviceModal({ isOpen, onOpenChange, deviceToEdit, onDeviceUp
                       <SelectItem value="sensor">Sensor</SelectItem>
                       <SelectItem value="camera">Camera</SelectItem>
                       <SelectItem value="speaker">Speaker</SelectItem>
+                      <SelectItem value="other">Other</SelectItem> {/* Added 'other' */}
                     </SelectContent>
                   </Select>
                   <FormMessage />

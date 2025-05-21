@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react'; // Removed useMemo
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
@@ -50,7 +50,7 @@ export default function DevicesPage() {
   // Save devices to localStorage whenever they change
   useEffect(() => {
     try {
-      if (devices.length > 0 || localStorage.getItem('smartHavenDevices')) { // Avoid writing empty initial array if nothing was there
+      if (devices.length > 0 || localStorage.getItem('smartHavenDevices')) { 
          localStorage.setItem('smartHavenDevices', JSON.stringify(devices));
       }
     } catch (error) {
@@ -58,19 +58,16 @@ export default function DevicesPage() {
     }
   }, [devices]);
 
+  // availableRooms useMemo removed as modals will fetch rooms from localStorage directly
 
-  const availableRooms = useMemo(() => {
-    return Array.from(new Set(devices.map(device => device.room).filter(room => room && room.trim() !== ""))).sort();
-  }, [devices]);
-
-  const handleDeviceAdd = (newDeviceData: Omit<Device, 'id' | 'status' | 'isOnline' | 'lastSeen' | 'controllable' | 'settings' | 'icon' | 'value'> & {type: 'light' | 'thermostat' | 'blinds' | 'sensor' | 'camera' | 'speaker'}) => {
+  const handleDeviceAdd = (newDeviceData: Omit<Device, 'id' | 'status' | 'isOnline' | 'lastSeen' | 'controllable' | 'settings' | 'icon' | 'value'> & {type: 'light' | 'thermostat' | 'blinds' | 'sensor' | 'camera' | 'speaker' | 'other'}) => {
     const newDevice: Device = {
       ...newDeviceData,
-      id: String(devices.length + 1 + Date.now()), // Simple unique ID
-      status: newDeviceData.type === 'light' || newDeviceData.type === 'blinds' ? 'off' : 'inactive', // Default status
+      id: String(devices.length + 1 + Date.now()), 
+      status: (newDeviceData.type === 'light' || newDeviceData.type === 'blinds') ? 'off' : 'inactive',
       isOnline: true,
       lastSeen: 'Just now',
-      controllable: ['light', 'thermostat', 'blinds', 'speaker'].includes(newDeviceData.type), // Default controllability
+      controllable: newDeviceData.type === 'other' ? false : ['light', 'thermostat', 'blinds', 'speaker'].includes(newDeviceData.type),
       settings: newDeviceData.type === 'light' ? { brightness: 50 } : newDeviceData.type === 'thermostat' ? { temperature: 22 } : {},
     };
     setDevices(prevDevices => [...prevDevices, newDevice]);
@@ -136,7 +133,7 @@ export default function DevicesPage() {
         isOpen={isAddDeviceModalOpen}
         onOpenChange={setIsAddDeviceModalOpen}
         onDeviceAdd={handleDeviceAdd}
-        availableRooms={availableRooms}
+        // availableRooms prop removed
       />
       {editingDevice && (
         <EditDeviceModal
@@ -144,7 +141,7 @@ export default function DevicesPage() {
           onOpenChange={setIsEditDeviceModalOpen}
           deviceToEdit={editingDevice}
           onDeviceUpdate={handleDeviceUpdate}
-          availableRooms={availableRooms}
+          // availableRooms prop removed
         />
       )}
       {deletingDevice && (

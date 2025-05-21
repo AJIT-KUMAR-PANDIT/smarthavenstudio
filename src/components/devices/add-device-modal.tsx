@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -30,12 +31,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import type { Device } from '@/types';
+import type { Device, Room } from '@/types'; // Added Room type
 
 const deviceSchema = z.object({
   name: z.string().min(2, { message: 'Device name must be at least 2 characters.' }),
-  room: z.string().min(1, { message: 'Please select or enter a room name.' }), // Changed min to 1 for selection
-  type: z.enum(['light', 'thermostat', 'blinds', 'sensor', 'camera', 'speaker'], {
+  room: z.string().min(1, { message: 'Please select or enter a room name.' }),
+  type: z.enum(['light', 'thermostat', 'blinds', 'sensor', 'camera', 'speaker', 'other'], { // Added 'other'
     required_error: 'You need to select a device type.',
   }),
 });
@@ -46,11 +47,13 @@ interface AddDeviceModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onDeviceAdd: (device: Omit<Device, 'id' | 'status' | 'isOnline' | 'lastSeen' | 'controllable' | 'settings' | 'icon' | 'value'> & {type: AddDeviceFormValues['type']}) => void;
-  availableRooms: string[];
+  // availableRooms prop removed
 }
 
-export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd, availableRooms }: AddDeviceModalProps) {
+export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd }: AddDeviceModalProps) {
   const { toast } = useToast();
+  const [availableRoomsInModal, setAvailableRoomsInModal] = useState<string[]>([]);
+
   const form = useForm<AddDeviceFormValues>({
     resolver: zodResolver(deviceSchema),
     defaultValues: {
@@ -60,16 +63,30 @@ export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd, availableRoo
     },
   });
 
+  useEffect(() => {
+    if (isOpen) {
+      try {
+        const storedRooms = localStorage.getItem('smartHavenRooms');
+        if (storedRooms) {
+          const parsedRooms: Pick<Room, 'name'>[] = JSON.parse(storedRooms); // Only need names for the dropdown
+          setAvailableRoomsInModal(Array.from(new Set(parsedRooms.map(r => r.name))).sort());
+        } else {
+          setAvailableRoomsInModal([]);
+        }
+      } catch (error) {
+        console.error("Failed to load rooms from localStorage for modal:", error);
+        setAvailableRoomsInModal([]);
+      }
+    }
+  }, [isOpen]);
+
   function onSubmit(data: AddDeviceFormValues) {
     onDeviceAdd({
         name: data.name,
         room: data.room,
         type: data.type,
     });
-    toast({
-      title: 'Device Added',
-      description: `${data.name} has been added to ${data.room}.`,
-    });
+    // Toast is now handled in the parent page
     form.reset();
     onOpenChange(false);
   }
@@ -116,21 +133,18 @@ export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd, availableRoo
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {availableRooms.map((roomName) => (
-                        <SelectItem key={roomName} value={roomName}>
-                          {roomName}
-                        </SelectItem>
-                      ))}
+                      {availableRoomsInModal.length > 0 ? (
+                        availableRoomsInModal.map((roomName) => (
+                          <SelectItem key={roomName} value={roomName}>
+                            {roomName}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="" disabled>No rooms created yet</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
-                  {/* 
-                  // Alternative: If you want to allow typing new rooms as well, use a Combobox or keep Input.
-                  // For now, sticking to Select as per "selectable dropdown".
-                  <FormControl>
-                    <Input placeholder="e.g., Living Room" {...field} />
-                  </FormControl>
-                   */}
                 </FormItem>
               )}
             />
@@ -153,6 +167,7 @@ export function AddDeviceModal({ isOpen, onOpenChange, onDeviceAdd, availableRoo
                       <SelectItem value="sensor">Sensor</SelectItem>
                       <SelectItem value="camera">Camera</SelectItem>
                       <SelectItem value="speaker">Speaker</SelectItem>
+                      <SelectItem value="other">Other</SelectItem> {/* Added 'other' */}
                     </SelectContent>
                   </Select>
                   <FormMessage />

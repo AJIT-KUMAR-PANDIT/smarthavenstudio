@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
-import { Wifi, WifiOff, Settings, ChevronDown, ChevronUp, Lightbulb, Thermometer, PanelTopOpen, Video, Speaker, Edit3, Trash2 } from "lucide-react"; // Added Trash2
+import { Wifi, WifiOff, Settings, ChevronDown, ChevronUp, Lightbulb, Thermometer, PanelTopOpen, Video, Speaker, Edit3, Trash2, HelpCircle } from "lucide-react"; // Added HelpCircle
 import React, { useState } from "react";
 import {
   Popover,
@@ -19,9 +19,10 @@ const deviceTypeIcons = {
   light: Lightbulb,
   thermostat: Thermometer,
   blinds: PanelTopOpen,
-  sensor: Thermometer, // Consider a more generic sensor icon if available or specific ones
+  sensor: Thermometer, 
   camera: Video,
   speaker: Speaker,
+  other: HelpCircle, // Added 'other'
 };
 
 interface DeviceCardProps {
@@ -29,16 +30,16 @@ interface DeviceCardProps {
   onToggle?: (id: string, status: boolean) => void;
   onSettingChange?: (id:string, setting: string, value: any) => void;
   onEdit: (device: Device) => void;
-  onDelete: (device: Device) => void; // Added onDelete prop
+  onDelete: (device: Device) => void; 
 }
 
-export function DeviceCard({ device, onToggle, onSettingChange, onEdit, onDelete }: DeviceCardProps) { // Updated props
+export function DeviceCard({ device, onToggle, onSettingChange, onEdit, onDelete }: DeviceCardProps) { 
   const [isOn, setIsOn] = useState(device.status === 'on' || (typeof device.value === 'number' && device.value > 0));
   const [brightness, setBrightness] = useState(device.type === 'light' && typeof device.settings?.brightness === 'number' ? device.settings.brightness : 50);
   const [temperature, setTemperature] = useState(device.type === 'thermostat' && typeof device.settings?.temperature === 'number' ? device.settings.temperature : 22);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const Icon = device.icon || deviceTypeIcons[device.type] || Lightbulb;
+  const Icon = device.icon || deviceTypeIcons[device.type] || HelpCircle; // Default to HelpCircle if type is unknown
 
   const handleToggle = (checked: boolean) => {
     setIsOn(checked);
@@ -133,7 +134,7 @@ export function DeviceCard({ device, onToggle, onSettingChange, onEdit, onDelete
                     </Button>
                     <Button variant="outline" size="sm" className="w-full justify-start text-xs">View Details</Button>
                     <Button variant="outline" size="sm" className="w-full justify-start text-xs">Device Logs</Button>
-                    <Button variant="destructive" size="sm" className="w-full justify-start text-xs" onClick={() => onDelete(device)}> {/* Updated */}
+                    <Button variant="destructive" size="sm" className="w-full justify-start text-xs" onClick={() => onDelete(device)}> 
                         <Trash2 className="mr-2 h-3 w-3" /> Remove Device
                     </Button>
                 </div>
