@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -25,6 +26,7 @@ import { Logo } from "@/components/ui/logo";
 import { Button } from "../ui/button";
 import { useAuth } from "@/contexts/auth-context";
 import { LogOut } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile"; // Added
 
 interface AppSidebarProps {
   className?: string;
@@ -33,6 +35,12 @@ interface AppSidebarProps {
 export function AppSidebar({ className }: AppSidebarProps) {
   const pathname = usePathname();
   const { logout, user } = useAuth();
+  const isMobile = useIsMobile(); // Added
+
+  // Sidebar is not rendered on mobile, BottomNavigationBar is used instead
+  if (isMobile) {
+    return null;
+  }
 
   const renderNavItems = (items: NavItem[], isSubMenu = false) => {
     return items.map((item) => {
@@ -44,15 +52,14 @@ export function AppSidebar({ className }: AppSidebarProps) {
           <SidebarMenuItem key={item.href}>
             <MenuButtonComponent
               asChild={!isSubMenu}
-              // @ts-ignore // TODO: Fix type for asChild compatibility
+              // @ts-ignore 
               href={isSubMenu ? item.href : undefined}
               isActive={isActive}
               // @ts-ignore
               onClick={isSubMenu ? undefined : (e: React.MouseEvent<HTMLButtonElement>) => {
-                // Basic toggle for sub-menu, a more robust solution might be needed
                 const subMenu = e.currentTarget.nextElementSibling;
                 if (subMenu) {
-                  subMenu.classList.toggle('hidden'); // Or use state for controlled component
+                  subMenu.classList.toggle('hidden'); 
                 }
               }}
               tooltip={item.title}
@@ -67,7 +74,7 @@ export function AppSidebar({ className }: AppSidebarProps) {
                 </>
               )}
             </MenuButtonComponent>
-            <SidebarMenuSub className={isActive ? "" : "hidden"}> {/* Initial state based on active */}
+            <SidebarMenuSub className={isActive ? "" : "hidden"}> 
               {item.items.map(subItem => (
                 <SidebarMenuSubItem key={subItem.href}>
                   <SidebarMenuSubButton 
