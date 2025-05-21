@@ -32,10 +32,32 @@ export default function DevicesPage() {
   const [devices, setDevices] = useState<Device[]>([]);
   const { toast } = useToast();
 
+  // Load devices from localStorage on mount
   useEffect(() => {
-    // Simulate loading devices, e.g., from localStorage if we were persisting
-    setDevices(initialMockDevices);
+    try {
+      const storedDevices = localStorage.getItem('smartHavenDevices');
+      if (storedDevices) {
+        setDevices(JSON.parse(storedDevices));
+      } else {
+        setDevices(initialMockDevices);
+      }
+    } catch (error) {
+      console.error("Failed to load devices from localStorage:", error);
+      setDevices(initialMockDevices); // Fallback to mock data
+    }
   }, []);
+
+  // Save devices to localStorage whenever they change
+  useEffect(() => {
+    try {
+      if (devices.length > 0 || localStorage.getItem('smartHavenDevices')) { // Avoid writing empty initial array if nothing was there
+         localStorage.setItem('smartHavenDevices', JSON.stringify(devices));
+      }
+    } catch (error) {
+      console.error("Failed to save devices to localStorage:", error);
+    }
+  }, [devices]);
+
 
   const availableRooms = useMemo(() => {
     return Array.from(new Set(devices.map(device => device.room).filter(room => room && room.trim() !== ""))).sort();
@@ -52,6 +74,10 @@ export default function DevicesPage() {
       settings: newDeviceData.type === 'light' ? { brightness: 50 } : newDeviceData.type === 'thermostat' ? { temperature: 22 } : {},
     };
     setDevices(prevDevices => [...prevDevices, newDevice]);
+    toast({
+      title: 'Device Added',
+      description: `${newDevice.name} has been added to ${newDevice.room}.`,
+    });
   };
 
   const handleOpenEditModal = (device: Device) => {
@@ -66,6 +92,10 @@ export default function DevicesPage() {
       )
     );
     setEditingDevice(null);
+    toast({
+      title: 'Device Updated',
+      description: `${updatedDeviceData.name} has been updated.`,
+    });
   };
 
   const handleOpenDeleteModal = (device: Device) => {

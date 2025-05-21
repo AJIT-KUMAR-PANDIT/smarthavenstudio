@@ -8,7 +8,7 @@ import { PlusCircle } from 'lucide-react';
 import { RoomList } from '@/components/rooms/room-list';
 import { AddRoomModal } from '@/components/rooms/add-room-modal';
 import { EditRoomModal } from '@/components/rooms/edit-room-modal';
-import { DeleteRoomConfirmationModal } from '@/components/rooms/delete-room-confirmation-modal'; // Added
+import { DeleteRoomConfirmationModal } from '@/components/rooms/delete-room-confirmation-modal';
 import type { Room } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { getIconComponentByName } from '@/components/rooms/add-room-form';
@@ -57,25 +57,52 @@ const initialMockRooms: Room[] = [
   },
 ];
 
+const rehydrateRoomIcons = (roomsToHydrate: Room[]): Room[] => {
+  return roomsToHydrate.map(room => ({
+    ...room,
+    icon: getIconComponentByName(room.iconName),
+    backgroundImage: room.backgroundImage || `https://placehold.co/600x400.png` 
+  }));
+};
 
 export default function RoomsPage() {
   const [isAddRoomModalOpen, setIsAddRoomModalOpen] = useState(false);
   const [isEditRoomModalOpen, setIsEditRoomModalOpen] = useState(false);
-  const [isDeleteRoomModalOpen, setIsDeleteRoomModalOpen] = useState(false); // Added
+  const [isDeleteRoomModalOpen, setIsDeleteRoomModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
-  const [deletingRoom, setDeletingRoom] = useState<Room | null>(null); // Added
+  const [deletingRoom, setDeletingRoom] = useState<Room | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const { toast } = useToast();
 
+  // Load rooms from localStorage on mount
   useEffect(() => {
-    if (rooms.length === 0) { 
-       setRooms(initialMockRooms.map(room => ({
-        ...room,
-        icon: getIconComponentByName(room.iconName),
-        backgroundImage: room.backgroundImage || `https://placehold.co/600x400.png` // Ensure bg image
-       })));
+    try {
+      const storedRooms = localStorage.getItem('smartHavenRooms');
+      if (storedRooms) {
+        const parsedRooms: Room[] = JSON.parse(storedRooms);
+        setRooms(rehydrateRoomIcons(parsedRooms));
+      } else {
+        setRooms(rehydrateRoomIcons(initialMockRooms));
+      }
+    } catch (error) {
+      console.error("Failed to load rooms from localStorage:", error);
+      setRooms(rehydrateRoomIcons(initialMockRooms)); // Fallback
     }
-  }, [rooms.length]); // Added rooms.length to dependency array
+  }, []);
+
+  // Save rooms to localStorage whenever they change
+  useEffect(() => {
+    try {
+      // Create a version of rooms without the icon component for serialization
+      const roomsToStore = rooms.map(({ icon, ...rest }) => rest);
+      if (roomsToStore.length > 0 || localStorage.getItem('smartHavenRooms')) {
+        localStorage.setItem('smartHavenRooms', JSON.stringify(roomsToStore));
+      }
+    } catch (error) {
+      console.error("Failed to save rooms to localStorage:", error);
+    }
+  }, [rooms]);
+
 
   const handleRoomAdd = (newRoomData: Omit<Room, 'id' | 'devices' | 'icon'>) => {
     const newRoom: Room = {
@@ -110,12 +137,12 @@ export default function RoomsPage() {
     });
   };
 
-  const handleOpenDeleteModal = (room: Room) => { // Added
+  const handleOpenDeleteModal = (room: Room) => {
     setDeletingRoom(room);
     setIsDeleteRoomModalOpen(true);
   };
 
-  const handleConfirmDeleteRoom = () => { // Added
+  const handleConfirmDeleteRoom = () => {
     if (deletingRoom) {
       setRooms(prevRooms => prevRooms.filter(room => room.id !== deletingRoom.id));
       toast({
@@ -142,7 +169,7 @@ export default function RoomsPage() {
       <RoomList 
         rooms={rooms} 
         onEditRoom={handleOpenEditModal} 
-        onDeleteRoom={handleOpenDeleteModal} // Added
+        onDeleteRoom={handleOpenDeleteModal}
       />
       <AddRoomModal
         isOpen={isAddRoomModalOpen}
@@ -157,7 +184,7 @@ export default function RoomsPage() {
           onRoomUpdate={handleRoomUpdate}
         />
       )}
-      {deletingRoom && ( // Added
+      {deletingRoom && (
         <DeleteRoomConfirmationModal
           isOpen={isDeleteRoomModalOpen}
           onOpenChange={setIsDeleteRoomModalOpen}

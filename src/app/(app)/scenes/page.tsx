@@ -4,13 +4,13 @@
 import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Wand2, Film, Sun, Coffee, Palette, Zap, Moon } from 'lucide-react';
+import { PlusCircle, Wand2, Film, Sun, Coffee, Palette, Zap, Moon, type LucideIcon } from 'lucide-react';
 import { SceneList } from '@/components/scenes/scene-list';
 import { AiSceneSuggester } from '@/components/scenes/ai-scene-suggester';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddSceneModal } from '@/components/scenes/add-scene-modal';
 import { EditSceneModal } from '@/components/scenes/edit-scene-modal';
-import { DeleteSceneConfirmationModal } from '@/components/scenes/delete-scene-confirmation-modal'; // Added
+import { DeleteSceneConfirmationModal } from '@/components/scenes/delete-scene-confirmation-modal';
 import type { Scene } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 
@@ -23,14 +23,56 @@ const initialMockScenes: Scene[] = [
   { id: "6", name: "Bedtime", description: "Dim all lights, set thermostat to sleep mode.", isActive: false, actions: [], icon: Moon },
 ];
 
+// Helper to re-apply icons from mock data after loading from localStorage
+const rehydrateSceneIcons = (scenesToHydrate: Scene[]): Scene[] => {
+  return scenesToHydrate.map(scene => {
+    const mockScene = initialMockScenes.find(ms => ms.id === scene.id);
+    return {
+      ...scene,
+      icon: mockScene ? mockScene.icon : Film, // Default to Film icon if not found
+    };
+  });
+};
+
+
 export default function ScenesPage() {
   const [isAddSceneModalOpen, setIsAddSceneModalOpen] = useState(false);
   const [isEditSceneModalOpen, setIsEditSceneModalOpen] = useState(false);
-  const [isDeleteSceneModalOpen, setIsDeleteSceneModalOpen] = useState(false); // Added
+  const [isDeleteSceneModalOpen, setIsDeleteSceneModalOpen] = useState(false);
   const [editingScene, setEditingScene] = useState<Scene | null>(null);
-  const [deletingSceneId, setDeletingSceneId] = useState<string | null>(null); // Added
-  const [scenes, setScenes] = useState<Scene[]>(initialMockScenes);
+  const [deletingSceneId, setDeletingSceneId] = useState<string | null>(null);
+  const [scenes, setScenes] = useState<Scene[]>([]);
   const { toast } = useToast();
+
+  // Load scenes from localStorage on mount
+  useEffect(() => {
+    try {
+      const storedScenes = localStorage.getItem('smartHavenScenes');
+      if (storedScenes) {
+        const parsedScenes: Omit<Scene, 'icon'>[] = JSON.parse(storedScenes);
+        setScenes(rehydrateSceneIcons(parsedScenes as Scene[])); // Cast as Scene[] and let rehydrate handle icon
+      } else {
+        setScenes(initialMockScenes); // Already has icons
+      }
+    } catch (error) {
+      console.error("Failed to load scenes from localStorage:", error);
+      setScenes(initialMockScenes); // Fallback
+    }
+  }, []);
+
+  // Save scenes to localStorage whenever they change
+  useEffect(() => {
+    try {
+      // Create a version of scenes without the icon component for serialization
+      const scenesToStore = scenes.map(({ icon, ...rest }) => rest);
+      if (scenesToStore.length > 0 || localStorage.getItem('smartHavenScenes')) {
+         localStorage.setItem('smartHavenScenes', JSON.stringify(scenesToStore));
+      }
+    } catch (error) {
+      console.error("Failed to save scenes to localStorage:", error);
+    }
+  }, [scenes]);
+
 
   const handleSceneAdd = (newSceneData: Omit<Scene, 'id' | 'isActive' | 'icon' | 'actions'>) => {
     const newScene: Scene = {
@@ -70,12 +112,12 @@ export default function ScenesPage() {
     });
   };
 
-  const handleOpenDeleteModal = (sceneId: string) => { // Added
+  const handleOpenDeleteModal = (sceneId: string) => {
     setDeletingSceneId(sceneId);
     setIsDeleteSceneModalOpen(true);
   };
 
-  const handleConfirmDelete = () => { // Added
+  const handleConfirmDelete = () => {
     if (deletingSceneId) {
       const sceneToDelete = scenes.find(s => s.id === deletingSceneId);
       setScenes(prevScenes => prevScenes.filter(s => s.id !== deletingSceneId));
@@ -134,7 +176,7 @@ export default function ScenesPage() {
             onActivate={handleActivate}
             onDeactivate={handleDeactivate}
             onEdit={handleOpenEditModal}
-            onDelete={handleOpenDeleteModal} // Changed to open delete modal
+            onDelete={handleOpenDeleteModal}
           />
         </TabsContent>
         <TabsContent value="ai-suggester" className="mt-6">
@@ -155,7 +197,7 @@ export default function ScenesPage() {
           onSceneUpdate={handleSceneUpdate}
         />
       )}
-      {deletingSceneId && ( // Added
+      {deletingSceneId && (
         <DeleteSceneConfirmationModal
           isOpen={isDeleteSceneModalOpen}
           onOpenChange={setIsDeleteSceneModalOpen}

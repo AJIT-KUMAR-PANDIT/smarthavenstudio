@@ -1,25 +1,16 @@
 
 'use client';
 
-// import type { Metadata } // Metadata cannot be used in client components
-// from 'next';
+import { useState, useEffect } from 'react'; // Added useEffect
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react'; // Removed unused icons
+import { PlusCircle } from 'lucide-react';
 import { AutomationList } from '@/components/automations/automation-list';
-// import Link from 'next/link'; // Link not used directly here anymore
-import { useState } from 'react';
 import type { Automation } from '@/types';
 import { AddAutomationModal } from '@/components/automations/add-automation-modal';
 import { EditAutomationModal } from '@/components/automations/edit-automation-modal';
-import { DeleteAutomationConfirmationModal } from '@/components/automations/delete-automation-confirmation-modal'; // Added
+import { DeleteAutomationConfirmationModal } from '@/components/automations/delete-automation-confirmation-modal';
 import { useToast } from '@/hooks/use-toast';
-
-// Metadata should be handled by a parent server component if this page becomes client-only.
-// export const metadata: Metadata = {
-//   title: 'Automations - SmartHaven',
-//   description: 'Set up and manage your smart home automations.',
-// };
 
 const initialMockAutomations: Automation[] = [
   {
@@ -61,13 +52,40 @@ const initialMockAutomations: Automation[] = [
 
 
 export default function AutomationsPage() {
-  const [automations, setAutomations] = useState<Automation[]>(initialMockAutomations);
+  const [automations, setAutomations] = useState<Automation[]>([]);
   const [isAddAutomationModalOpen, setIsAddAutomationModalOpen] = useState(false);
   const [isEditAutomationModalOpen, setIsEditAutomationModalOpen] = useState(false);
   const [editingAutomation, setEditingAutomation] = useState<Automation | null>(null);
-  const [isDeleteAutomationModalOpen, setIsDeleteAutomationModalOpen] = useState(false); // Added
-  const [deletingAutomationId, setDeletingAutomationId] = useState<string | null>(null); // Added
+  const [isDeleteAutomationModalOpen, setIsDeleteAutomationModalOpen] = useState(false);
+  const [deletingAutomationId, setDeletingAutomationId] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Load automations from localStorage on mount
+  useEffect(() => {
+    try {
+      const storedAutomations = localStorage.getItem('smartHavenAutomations');
+      if (storedAutomations) {
+        setAutomations(JSON.parse(storedAutomations));
+      } else {
+        setAutomations(initialMockAutomations);
+      }
+    } catch (error) {
+      console.error("Failed to load automations from localStorage:", error);
+      setAutomations(initialMockAutomations); // Fallback
+    }
+  }, []);
+
+  // Save automations to localStorage whenever they change
+  useEffect(() => {
+    try {
+      if (automations.length > 0 || localStorage.getItem('smartHavenAutomations')) {
+        localStorage.setItem('smartHavenAutomations', JSON.stringify(automations));
+      }
+    } catch (error) {
+      console.error("Failed to save automations to localStorage:", error);
+    }
+  }, [automations]);
+
 
   const handleAutomationAdd = (newAutomationData: Pick<Automation, 'name' | 'description'>) => {
     const newAutomation: Automation = {
@@ -113,12 +131,12 @@ export default function AutomationsPage() {
     });
   };
 
-  const handleOpenDeleteAutomationModal = (automationId: string) => { // Renamed and updated
+  const handleOpenDeleteAutomationModal = (automationId: string) => {
     setDeletingAutomationId(automationId);
     setIsDeleteAutomationModalOpen(true);
   };
 
-  const handleConfirmDeleteAutomation = () => { // Added
+  const handleConfirmDeleteAutomation = () => {
     if (deletingAutomationId) {
       const automationToDelete = automations.find(auto => auto.id === deletingAutomationId);
       setAutomations(prev => prev.filter(auto => auto.id !== deletingAutomationId));
@@ -148,7 +166,7 @@ export default function AutomationsPage() {
         automations={automations}
         onToggleEnable={handleToggleEnable}
         onEdit={handleOpenEditModal} 
-        onDelete={handleOpenDeleteAutomationModal} // Updated to open delete modal
+        onDelete={handleOpenDeleteAutomationModal}
       />
       <AddAutomationModal
         isOpen={isAddAutomationModalOpen}
@@ -163,7 +181,7 @@ export default function AutomationsPage() {
           onAutomationUpdate={handleAutomationUpdate}
         />
       )}
-      {deletingAutomationId && ( // Added
+      {deletingAutomationId && (
         <DeleteAutomationConfirmationModal
           isOpen={isDeleteAutomationModalOpen}
           onOpenChange={setIsDeleteAutomationModalOpen}
