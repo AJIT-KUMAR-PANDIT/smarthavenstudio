@@ -24,17 +24,33 @@ export interface Room {
   iconName?: string; // Name of the icon for storage/selection
 }
 
+export interface SceneAction {
+  deviceId: string;
+  action: string; // e.g., 'turnOn', 'setBrightness', 'setTemperature', 'setStatus'
+  value?: any; // e.g., true, 50, 22, 'open'
+}
+
 export interface Scene {
   id: string;
   name: string;
   description: string;
   icon?: LucideIcon;
   isActive: boolean;
-  actions: {
-    deviceId: string;
-    action: string; // e.g., 'turnOn', 'setBrightness'
+  actions: SceneAction[];
+}
+
+export type AutomationActionType = 'device_action' | 'scene_activation' | 'notification';
+
+export interface AutomationAction {
+  id: string; // Unique ID for the action itself, useful for field arrays
+  type: AutomationActionType;
+  details: {
+    deviceId?: string;
+    command?: string; // e.g., 'turnOn', 'setBrightness'
     value?: any;
-  }[];
+    sceneId?: string;
+    message?: string;
+  };
 }
 
 export interface Automation {
@@ -46,10 +62,7 @@ export interface Automation {
     type: 'time' | 'sunrise' | 'sunset' | 'device_state' | 'sensor_reading';
     details: Record<string, any>; // e.g., { time: '07:00' } or { deviceId: 'xyz', state: 'on' }
   };
-  actions: {
-    type: 'device_action' | 'scene_activation' | 'notification';
-    details: Record<string, any>; // e.g., { deviceId: 'abc', command: 'turnOff' } or { sceneId: '123' }
-  }[];
+  actions: AutomationAction[];
 }
 
 export interface LogEntry {
@@ -74,3 +87,4 @@ export interface EnergyDataPoint {
   time: string; // Could be date string or hour
   consumption: number; // in kWh or other unit
 }
+

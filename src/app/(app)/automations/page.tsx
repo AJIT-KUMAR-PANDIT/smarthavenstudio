@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { AutomationList } from '@/components/automations/automation-list';
-import type { Automation } from '@/types';
+import type { Automation, AutomationAction } from '@/types';
 import { AddAutomationModal } from '@/components/automations/add-automation-modal';
 import { EditAutomationModal } from '@/components/automations/edit-automation-modal';
 import { DeleteAutomationConfirmationModal } from '@/components/automations/delete-automation-confirmation-modal';
@@ -20,8 +20,8 @@ const initialMockAutomations: Automation[] = [
     isEnabled: true,
     trigger: { type: "time", details: { time: "07:00" } },
     actions: [
-      { type: "device_action", details: { deviceId: "bedroom-blinds", command: "open" } },
-      { type: "device_action", details: { deviceId: "bedroom-light", command: "turnOn", value: "soft white" } },
+      { id: "action1", type: "device_action", details: { deviceId: "bedroom-blinds", command: "open" } },
+      { id: "action2", type: "device_action", details: { deviceId: "bedroom-light", command: "turnOn", value: "soft white" } },
     ]
   },
   {
@@ -30,7 +30,7 @@ const initialMockAutomations: Automation[] = [
     description: "Turn on outdoor lights at sunset.",
     isEnabled: true,
     trigger: { type: "sunset", details: { offset: "-15m" } },
-    actions: [{ type: "device_action", details: { deviceId: "outdoor-lights", command: "turnOn" } }]
+    actions: [{ id: "action3", type: "device_action", details: { deviceId: "outdoor-lights", command: "turnOn" } }]
   },
   {
     id: "3",
@@ -38,7 +38,7 @@ const initialMockAutomations: Automation[] = [
     description: "If Movie Night scene is active, dim hallway lights.",
     isEnabled: false,
     trigger: { type: "device_state", details: { sceneId: "movie-night-scene", state: "active" } },
-    actions: [{ type: "device_action", details: { deviceId: "hallway-light", command: "dim", value: 10 } }]
+    actions: [{ id: "action4", type: "device_action", details: { deviceId: "hallway-light", command: "dim", value: 10 } }]
   },
    {
     id: "4",
@@ -46,7 +46,7 @@ const initialMockAutomations: Automation[] = [
     description: "If door sensor opens after 11 PM, send notification.",
     isEnabled: true,
     trigger: { type: "sensor_reading", details: { deviceId: "door-sensor", value: "open", condition: "after:23:00" } },
-    actions: [{ type: "notification", details: { message: "Front door opened late at night!" } }]
+    actions: [{ id: "action5", type: "notification", details: { message: "Front door opened late at night!" } }]
   },
 ];
 
@@ -87,13 +87,11 @@ export default function AutomationsPage() {
   }, [automations]);
 
 
-  const handleAutomationAdd = (newAutomationData: Pick<Automation, 'name' | 'description' | 'trigger'>) => {
+  const handleAutomationAdd = (newAutomationData: Pick<Automation, 'name' | 'description' | 'trigger' | 'actions'>) => {
     const newAutomation: Automation = {
       ...newAutomationData,
       id: String(automations.length + 1 + Date.now()),
       isEnabled: true,
-      // trigger is now part of newAutomationData
-      actions: [], 
     };
     setAutomations(prevAutomations => [...prevAutomations, newAutomation]);
     toast({
@@ -118,9 +116,9 @@ export default function AutomationsPage() {
     }
   };
 
-  const handleAutomationUpdate = (updatedData: Pick<Automation, 'id' | 'name' | 'description' | 'trigger'>) => {
-    setAutomations(prev => 
-      prev.map(auto => 
+  const handleAutomationUpdate = (updatedData: Automation) => {
+    setAutomations(prev =>
+      prev.map(auto =>
         auto.id === updatedData.id ? { ...auto, ...updatedData } : auto
       )
     );
@@ -165,7 +163,7 @@ export default function AutomationsPage() {
       <AutomationList
         automations={automations}
         onToggleEnable={handleToggleEnable}
-        onEdit={handleOpenEditModal} 
+        onEdit={handleOpenEditModal}
         onDelete={handleOpenDeleteAutomationModal}
       />
       <AddAutomationModal

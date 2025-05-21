@@ -9,13 +9,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { EditAutomationForm } from './edit-automation-form';
-import type { Automation } from '@/types';
+import type { Automation, AutomationAction } from '@/types';
 
 interface EditAutomationModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   automationToEdit: Automation | null;
-  onAutomationUpdate: (automationData: Pick<Automation, 'id' | 'name' | 'description'>) => void;
+  onAutomationUpdate: (automationData: Automation) => void;
 }
 
 export function EditAutomationModal({ isOpen, onOpenChange, automationToEdit, onAutomationUpdate }: EditAutomationModalProps) {
@@ -23,18 +23,18 @@ export function EditAutomationModal({ isOpen, onOpenChange, automationToEdit, on
     return null;
   }
 
-  const handleAutomationUpdated = (automationData: Pick<Automation, 'id' | 'name' | 'description'>) => {
+  const handleAutomationUpdated = (automationData: Automation) => {
     onAutomationUpdate(automationData);
     onOpenChange(false); // Close modal after updating
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="sm:max-w-2xl overflow-y-auto max-h-[90vh]"> {/* Increased width & height for actions */}
         <DialogHeader>
           <DialogTitle>Edit Automation: {automationToEdit.name}</DialogTitle>
           <DialogDescription>
-            Modify the details for your automated routine.
+            Modify the details, trigger, and actions for your automated routine.
           </DialogDescription>
         </DialogHeader>
         <EditAutomationForm
