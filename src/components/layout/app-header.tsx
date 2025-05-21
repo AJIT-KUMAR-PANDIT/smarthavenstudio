@@ -23,37 +23,32 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeSwitcher } from "@/components/settings/theme-switcher";
 import { useAuth } from "@/contexts/auth-context";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Logo } from "@/components/ui/logo";
-import { useIsMobile } from "@/hooks/use-mobile";
+// useIsMobile is not directly used for visibility toggles in the revised version
+// import { useIsMobile } from "@/hooks/use-mobile";
 
 export function AppHeader() {
   const { user, logout } = useAuth();
-  const isMobile = useIsMobile();
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 shadow-sm">
-      <div className="flex items-center gap-2">
-        {!isMobile && (
-          <div className="md:hidden">
-          </div>
-        )}
-         <Link href="/dashboard" aria-label="SmartHaven Home" className="flex items-center">
-            <Logo className="h-8" />
-         </Link>
-      </div>
-      
-      <div className="flex flex-1 min-w-0 items-center gap-4 md:ml-auto md:gap-2 lg:gap-4"> {/* Changed w-full to flex-1 and added min-w-0 */}
-        <form className="ml-auto flex-1 sm:max-w-xs"> {/* Adjusted for better mobile sizing */}
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search..."
-              className="pl-8 w-full bg-card sm:w-[200px] md:w-[200px] lg:w-[300px]" // w-full for mobile, specific widths for larger
-            />
-          </div>
+      {/* Logo Section - flex-shrink-0 to prevent shrinking if title is long, but ensure it's not too wide */}
+      <Link href="/dashboard" aria-label="SmartHaven Home" className="flex items-center flex-shrink-0">
+        <Logo className="h-8" />
+      </Link>
+
+      {/* Search and Actions Section - takes remaining space and pushes content to its end */}
+      <div className="flex flex-1 items-center justify-end gap-2 md:gap-4">
+        {/* Search Form - adaptive width */}
+        <form className="relative w-full max-w-xs sm:w-auto sm:flex-initial"> {/* Adjusted: w-full on smallest, then auto/initial, with max-width */}
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search..."
+            className="pl-8 w-full bg-card" // Input takes full width of its form container
+          />
         </form>
+
         <ThemeSwitcher />
         <Button variant="ghost" size="icon" className="rounded-full" asChild>
           <Link href="/notifications">
