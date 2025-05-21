@@ -6,29 +6,35 @@ import { DoorOpen, Lightbulb, Thermometer, Users, Edit3 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { getIconComponentByName } from "./add-room-form"; // Import helper
+import { getIconComponentByName } from "./add-room-form"; 
 
 interface RoomCardProps {
   room: Room;
+  onEdit?: (room: Room) => void; // Added onEdit prop
 }
 
-export function RoomCard({ room }: RoomCardProps) {
-  const Icon = room.icon || getIconComponentByName(room.iconName) || DoorOpen; // Use helper or default
+export function RoomCard({ room, onEdit }: RoomCardProps) { // Added onEdit to props
+  const Icon = room.icon || getIconComponentByName(room.iconName) || DoorOpen; 
   const onlineDevices = room.devices.filter(d => d.isOnline).length;
   const activeLights = room.devices.filter(d => d.type === 'light' && d.status === 'on').length;
-  // A simple heuristic for room activity based on device status
   const isRoomActive = room.devices.some(d => d.status === 'on' || d.status === 'active' || (typeof d.value === 'number' && d.value > 0));
 
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation if it was a link
+    if (onEdit) {
+      onEdit(room);
+    }
+  };
 
   return (
-    <Card className="shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col">
+    <Card className="shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col group"> {/* Added group for hover state on image */}
       {room.backgroundImage && (
          <div className="relative h-40 w-full">
             <Image 
                 src={room.backgroundImage} 
                 alt={room.name} 
-                fill={true} // Use fill instead of layout
-                style={{objectFit: "cover"}} // Use style for objectFit
+                fill={true}
+                style={{objectFit: "cover"}}
                 className="transition-transform duration-300 group-hover:scale-105"
                 data-ai-hint="room interior" 
             />
@@ -40,11 +46,14 @@ export function RoomCard({ room }: RoomCardProps) {
           <Icon className={cn("h-6 w-6", room.backgroundImage ? "text-white" : "text-primary")} />
           <CardTitle className={cn("text-xl", room.backgroundImage && "text-white")}>{room.name}</CardTitle>
         </div>
-         <Button variant={room.backgroundImage ? "ghost" : "outline"} size="icon" className={cn("h-8 w-8", room.backgroundImage && "text-white hover:bg-white/20")} asChild>
-            {/* This link will eventually trigger an EditRoomModal */}
-            <Link href={`#edit-room-${room.id}`}>
-                <Edit3 className="h-4 w-4" />
-            </Link>
+         <Button 
+            variant={room.backgroundImage ? "ghost" : "outline"} 
+            size="icon" 
+            className={cn("h-8 w-8", room.backgroundImage && "text-white hover:bg-white/20")}
+            onClick={onEdit ? handleEditClick : undefined} // Call onEdit if provided
+            aria-label={`Edit room ${room.name}`}
+         >
+            <Edit3 className="h-4 w-4" />
         </Button>
       </CardHeader>
       <CardContent className={cn("flex-grow space-y-2", room.backgroundImage && "pt-2")}>
@@ -65,7 +74,6 @@ export function RoomCard({ room }: RoomCardProps) {
       </CardContent>
       <CardFooter className="border-t pt-4">
         <Button variant="default" size="sm" className="w-full" asChild>
-             {/* This link will eventually trigger a ViewRoomModal or navigate to a room detail page */}
             <Link href={`#view-room-${room.id}`}>
                 View Room
             </Link>
