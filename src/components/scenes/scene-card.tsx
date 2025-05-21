@@ -18,6 +18,7 @@ interface SceneCardProps {
 
 export function SceneCard({ scene, onActivate, onDeactivate, onEdit, onDelete }: SceneCardProps) {
   const Icon = scene.icon || Zap;
+  const actionsCount = (scene.actions || []).length;
 
   return (
     <Card className={cn("shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col", scene.isActive && "border-primary ring-2 ring-primary")}>
@@ -33,7 +34,7 @@ export function SceneCard({ scene, onActivate, onDeactivate, onEdit, onDelete }:
       </CardHeader>
       <CardContent className="flex-grow">
         <p className="text-xs text-muted-foreground">
-          Actions: {scene.actions.length} device command{scene.actions.length === 1 ? '' : 's'}
+          Actions: {actionsCount} device command{actionsCount === 1 ? '' : 's'}
         </p>
       </CardContent>
       <CardFooter className="grid grid-cols-2 gap-2 border-t pt-4">
