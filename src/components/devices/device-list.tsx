@@ -10,10 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface DeviceListProps {
   devices: Device[];
   onEditDevice: (device: Device) => void;
-  onDeleteDevice: (device: Device) => void; // Added
+  onDeleteDevice: (device: Device) => void; 
 }
 
-export function DeviceList({ devices, onEditDevice, onDeleteDevice }: DeviceListProps) { // Updated props
+export function DeviceList({ devices, onEditDevice, onDeleteDevice }: DeviceListProps) { 
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRoom, setFilterRoom] = useState("all");
   const [filterType, setFilterType] = useState("all");
@@ -47,21 +47,17 @@ export function DeviceList({ devices, onEditDevice, onDeleteDevice }: DeviceList
      return <p className="text-muted-foreground text-center py-10">No devices added yet. Click &quot;Add Device&quot; to get started.</p>;
   }
 
-  if (filteredDevices.length === 0 && devices.length > 0) {
-    return <p className="text-muted-foreground text-center py-10">No devices match your current filters. Try adjusting your search or filters.</p>;
-  }
-
   return (
     <div className="space-y-6">
-       <div className="flex flex-col sm:flex-row gap-4">
+       <div className="flex flex-col sm:flex-row gap-4 sm:overflow-x-auto py-1">
         <Input
           placeholder="Search devices by name or room..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm bg-card"
+          className="w-full sm:max-w-sm bg-card flex-shrink-0"
         />
         <Select value={filterRoom} onValueChange={setFilterRoom}>
-          <SelectTrigger className="w-full sm:w-[180px] bg-card">
+          <SelectTrigger className="w-full sm:w-[180px] bg-card flex-shrink-0">
             <SelectValue placeholder="Filter by room" />
           </SelectTrigger>
           <SelectContent>
@@ -69,7 +65,7 @@ export function DeviceList({ devices, onEditDevice, onDeleteDevice }: DeviceList
           </SelectContent>
         </Select>
         <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-full sm:w-[180px] bg-card">
+          <SelectTrigger className="w-full sm:w-[180px] bg-card flex-shrink-0">
             <SelectValue placeholder="Filter by type" />
           </SelectTrigger>
           <SelectContent>
@@ -77,18 +73,23 @@ export function DeviceList({ devices, onEditDevice, onDeleteDevice }: DeviceList
           </SelectContent>
         </Select>
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {filteredDevices.map((device) => (
-          <DeviceCard
-            key={device.id}
-            device={device}
-            onToggle={handleToggle}
-            onSettingChange={handleSettingChange}
-            onEdit={() => onEditDevice(device)}
-            onDelete={() => onDeleteDevice(device)} // Added onDelete prop
-          />
-        ))}
-      </div>
+      
+      {filteredDevices.length === 0 && devices.length > 0 ? (
+         <p className="text-muted-foreground text-center py-10">No devices match your current filters. Try adjusting your search or filters.</p>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {filteredDevices.map((device) => (
+            <DeviceCard
+              key={device.id}
+              device={device}
+              onToggle={handleToggle}
+              onSettingChange={handleSettingChange}
+              onEdit={() => onEditDevice(device)}
+              onDelete={() => onDeleteDevice(device)} 
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

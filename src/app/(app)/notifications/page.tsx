@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/shared/page-header';
@@ -32,11 +33,11 @@ export default function NotificationsPage() {
         title="Notifications" 
         description="Stay updated with alerts and important information from your smart home."
         actions={
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button variant="outline" onClick={handleMarkAllRead} className="w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-2 sm:overflow-x-auto py-1">
+            <Button variant="outline" onClick={handleMarkAllRead} className="w-full sm:w-auto flex-shrink-0">
               <CheckCheck className="mr-2 h-4 w-4" /> Mark all as read
             </Button>
-            <Button variant="destructive" onClick={handleClearAll} className="w-full sm:w-auto">
+            <Button variant="destructive" onClick={handleClearAll} className="w-full sm:w-auto flex-shrink-0">
               <Trash2 className="mr-2 h-4 w-4" /> Clear all
             </Button>
           </div>

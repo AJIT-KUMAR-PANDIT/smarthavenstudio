@@ -1,3 +1,4 @@
+
 import type { ReactNode } from 'react';
 
 interface PageHeaderProps {
@@ -17,7 +18,7 @@ export function PageHeader({ title, description, actions }: PageHeaderProps) {
           <p className="text-muted-foreground">{description}</p>
         )}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="flex items-center gap-2 min-w-0">{actions}</div>}
     </div>
   );
 }
