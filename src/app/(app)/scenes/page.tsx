@@ -2,7 +2,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { Metadata } from 'next';
+// Metadata export removed as this is a client component
+// import type { Metadata } from 'next'; 
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Wand2, Film, Sun, Coffee, Palette, Zap, Moon } from 'lucide-react';
@@ -10,14 +11,9 @@ import { SceneList } from '@/components/scenes/scene-list';
 import { AiSceneSuggester } from '@/components/scenes/ai-scene-suggester';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddSceneModal } from '@/components/scenes/add-scene-modal';
+import { EditSceneModal } from '@/components/scenes/edit-scene-modal'; // Added
 import type { Scene } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-
-// Metadata should be handled in a parent Server Component or layout if this page is client-side.
-// export const metadata: Metadata = {
-//   title: 'Scenes - SmartHaven',
-//   description: 'Create and manage your smart home scenes.',
-// };
 
 const initialMockScenes: Scene[] = [
   { id: "1", name: "Movie Night", description: "Dim lights, enable surround sound, close blinds.", isActive: false, actions: [{deviceId: 'light1', action: 'dim', value: 20}], icon: Film },
@@ -30,21 +26,46 @@ const initialMockScenes: Scene[] = [
 
 export default function ScenesPage() {
   const [isAddSceneModalOpen, setIsAddSceneModalOpen] = useState(false);
+  const [isEditSceneModalOpen, setIsEditSceneModalOpen] = useState(false); // Added
+  const [editingScene, setEditingScene] = useState<Scene | null>(null); // Added
   const [scenes, setScenes] = useState<Scene[]>(initialMockScenes);
   const { toast } = useToast();
 
   const handleSceneAdd = (newSceneData: Omit<Scene, 'id' | 'isActive' | 'icon' | 'actions'>) => {
     const newScene: Scene = {
       ...newSceneData,
-      id: String(scenes.length + 1 + Date.now()), // Simple unique ID
+      id: String(scenes.length + 1 + Date.now()), 
       isActive: false,
-      icon: Film, // Default icon for new scenes, can be customized later
-      actions: [], // Default empty actions
+      icon: Film, 
+      actions: [], 
     };
     setScenes(prevScenes => [...prevScenes, newScene]);
     toast({
       title: 'Scene Created',
       description: `${newScene.name} has been successfully created.`,
+    });
+  };
+
+  const handleOpenEditModal = (sceneId: string) => { // Modified to take ID
+    const sceneToEdit = scenes.find(s => s.id === sceneId);
+    if (sceneToEdit) {
+      setEditingScene(sceneToEdit);
+      setIsEditSceneModalOpen(true);
+    } else {
+      toast({ title: "Error", description: "Scene not found.", variant: "destructive" });
+    }
+  };
+
+  const handleSceneUpdate = (updatedSceneData: Pick<Scene, 'id' | 'name' | 'description'>) => { // Added
+    setScenes(prevScenes =>
+      prevScenes.map(scene =>
+        scene.id === updatedSceneData.id ? { ...scene, ...updatedSceneData } : scene
+      )
+    );
+    setEditingScene(null);
+    toast({
+      title: 'Scene Updated',
+      description: `${updatedSceneData.name} has been successfully updated.`,
     });
   };
 
@@ -67,12 +88,6 @@ export default function ScenesPage() {
     const scene = scenes.find(s => s.id === id);
     toast({ title: `${scene?.name || 'Scene'} Deactivated` });
   }
-
-  const handleEdit = (id: string) => {
-    const scene = scenes.find(s => s.id === id);
-    // This would open an EditSceneModal in a full implementation
-    toast({ title: `Editing ${scene?.name}`, description: "Scene editing UI would open here." });
-  };
 
   const handleDelete = (id: string) => {
     const scene = scenes.find(s => s.id === id);
@@ -105,7 +120,7 @@ export default function ScenesPage() {
             scenes={scenes}
             onActivate={handleActivate}
             onDeactivate={handleDeactivate}
-            onEdit={handleEdit}
+            onEdit={handleOpenEditModal} // Changed from handleDelete to handleOpenEditModal
             onDelete={handleDelete}
           />
         </TabsContent>
@@ -119,6 +134,14 @@ export default function ScenesPage() {
         onOpenChange={setIsAddSceneModalOpen}
         onSceneAdd={handleSceneAdd}
       />
+      {editingScene && ( // Added
+        <EditSceneModal
+          isOpen={isEditSceneModalOpen}
+          onOpenChange={setIsEditSceneModalOpen}
+          sceneToEdit={editingScene}
+          onSceneUpdate={handleSceneUpdate}
+        />
+      )}
     </div>
   );
 }

@@ -1,17 +1,18 @@
+
 "use client";
 
 import type { Scene } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Play, Zap, Edit3, Trash2, AlertTriangle } from "lucide-react";
+import { Play, Zap, Edit3, Trash2, AlertTriangle, PowerOff } from "lucide-react"; // Added PowerOff for deactivate
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
 interface SceneCardProps {
   scene: Scene;
   onActivate: (id: string) => void;
-  onDeactivate?: (id: string) => void; // Optional for scenes that can be explicitly deactivated
-  onEdit: (id: string) => void;
+  onDeactivate?: (id: string) => void; 
+  onEdit: (id: string) => void; // Prop remains, expects id
   onDelete: (id: string) => void;
 }
 
@@ -34,12 +35,11 @@ export function SceneCard({ scene, onActivate, onDeactivate, onEdit, onDelete }:
         <p className="text-xs text-muted-foreground">
           Actions: {scene.actions.length} device command{scene.actions.length === 1 ? '' : 's'}
         </p>
-        {/* Could list first 1-2 actions here if needed */}
       </CardContent>
       <CardFooter className="grid grid-cols-2 gap-2 border-t pt-4">
         {scene.isActive && onDeactivate ? (
-           <Button variant="destructive" size="sm" onClick={() => onDeactivate(scene.id)}>
-            <Zap className="mr-2 h-4 w-4" /> Deactivate
+           <Button variant="outline" size="sm" onClick={() => onDeactivate(scene.id)}>
+            <PowerOff className="mr-2 h-4 w-4 text-destructive" /> Deactivate 
           </Button>
         ) : (
           <Button variant="default" size="sm" onClick={() => onActivate(scene.id)} disabled={scene.isActive}>
