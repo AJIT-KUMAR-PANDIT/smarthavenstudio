@@ -24,6 +24,7 @@ import { Select as ShadcnSelect, SelectContent, SelectItem, SelectTrigger, Selec
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Scene, Device, SceneAction } from '@/types';
 import { Lightbulb, Thermometer, PanelTopOpen, Tv, Speaker, HelpCircle, Search } from 'lucide-react';
+import { Label } from '@/components/ui/label'; // Added missing import
 
 const sceneActionSchema = z.object({
   deviceId: z.string(),
@@ -96,7 +97,7 @@ export function EditSceneForm({ sceneToEdit, onSceneUpdate, onCancel }: EditScen
   const filteredDevices = useMemo(() => {
     return allDevices.filter(device =>
       device.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      device.room?.toLowerCase().includes(searchTerm.toLowerCase())
+      (device.room && device.room.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [allDevices, searchTerm]);
 
